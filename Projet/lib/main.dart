@@ -5,7 +5,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:sorttrash/Puzzle/Models/TrashCans.dart';
 import 'package:sorttrash/Puzzle/main_puzzle.dart';
 import 'package:sorttrash/StartPage/choose_children/AddNewPlayer/add_new_player.dart';
@@ -13,6 +13,8 @@ import 'package:sorttrash/StartPage/choose_children/choose_child_profile_main.da
 import 'package:sorttrash/pages/niveaux.dart';
 import 'package:sorttrash/pages/trophies_page.dart';
 import 'package:sorttrash/player_box.dart';
+import 'package:sorttrash/hive_registrar.g.dart';
+import 'package:sorttrash/composents/app_theme.dart';
 import 'package:sorttrash/StartPage/ProfilePage/profile.dart';
 import 'BackEnd/AuthService/verify_user.dart';
 import 'BackEnd/PlayerProgress/player.dart';
@@ -39,17 +41,15 @@ final navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
+  await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   await Firebase.initializeApp();
   await Hive.initFlutter();
 
-  Hive.registerAdapter(PlayerProgressAdapter());
-  Hive.registerAdapter(LevelsCompletedAdapter());
-  Hive.registerAdapter(ParentAdapter());
+  Hive.registerAdapters();
   playerBox = await Hive.openBox<PlayerProgress>('playerBox');
   parentBox = await Hive.openBox<Parent>('parentBox');
   onlineParentBox = await Hive.openBox<Parent>('onlineParentBox');
@@ -65,6 +65,9 @@ void main() async {
   }
   await getProgress();
   runApp(MaterialApp(
+    title: 'EVERGREEN',
+    debugShowCheckedModeBanner: false,
+    theme: appTheme,
     navigatorKey: navigatorKey,
     initialRoute:
         '/StartPage', //le widget Niveaux sera utilisé pour l'affichage du niveaux, lors de la construction on lui fais passer le nombre de niveaux aux total et le nombre de niveaux unlocked et le href qui sera un routename pour lier

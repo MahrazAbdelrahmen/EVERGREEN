@@ -6,7 +6,7 @@ import 'package:sorttrash/StartPage/LoginPage/Cred/login_resgister_buttons.dart'
 import 'package:sorttrash/button.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  const RegisterPage({super.key});
 
   @override
   State<RegisterPage> createState() => _RegisterPage();
@@ -27,14 +27,11 @@ class _RegisterPage extends State<RegisterPage> {
 
   @override
   void initState() {
-    if (user != null) {
-      if (!user!.emailVerified) {
-        setState(() {
-          user!.delete();
-          FirebaseAuth.instance.signOut();
-        });
-      }
-      super.initState();
+    super.initState();
+    final user = this.user;
+    if (user != null && !user.emailVerified) {
+      user.delete();
+      FirebaseAuth.instance.signOut();
     }
   }
 
@@ -42,8 +39,8 @@ class _RegisterPage extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: WillPopScope(
-      onWillPop: () async => false,
+        body: PopScope(
+      canPop: false,
       child: SafeArea(
         child: Container(
           decoration: const BoxDecoration(
@@ -203,8 +200,8 @@ class _RegisterPage extends State<RegisterPage> {
                         child: const RoundButton(
                           myIcon: Icons.exit_to_app,
                           href: '/StartPage',
-                          couleur: Color.fromRGBO(255, 210, 23, 5),
-                          shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                          couleur: Color.fromRGBO(255, 210, 23, 1),
+                          shadowColor: Color.fromRGBO(255, 210, 23, 1),
                         ))
                   ],
                 ),

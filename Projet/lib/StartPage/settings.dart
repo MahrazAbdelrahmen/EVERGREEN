@@ -2,10 +2,10 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:sorttrash/StartPage/Silder.dart';
 import 'package:sorttrash/button.dart';
+import 'package:sorttrash/player_box.dart';
 
 final globalMusicPlayerStartPage = AudioPlayer();
 final globalSoundPlayerStartPage = AudioPlayer();
-final globalMusicCacheStartPage = AudioCache();
 
 class RoundButtonSettings extends StatelessWidget {
   final IconData myIcon;
@@ -13,7 +13,7 @@ class RoundButtonSettings extends StatelessWidget {
   final SetVolumeFunction volumeSettingsSoundFunction;
   final double value;
   final String href;
-  RoundButtonSettings(
+  const RoundButtonSettings(
       {super.key,
       required this.myIcon,
       required this.value,
@@ -89,7 +89,7 @@ class RoundButtonSettings extends StatelessWidget {
                                   const Text(
                                     'Music',
                                     style: TextStyle(
-                                      color: Color.fromRGBO(255, 210, 23, 5),
+                                      color: Color.fromRGBO(255, 210, 23, 1),
                                       fontSize: 20,
                                       fontFamily: 'Digital',
                                       fontWeight: FontWeight.bold,
@@ -99,8 +99,11 @@ class RoundButtonSettings extends StatelessWidget {
                                     height: 5,
                                   ),
                                   SilderMusic(
-                                    value: value,
-                                    changeVolume: volumeSettingsFunction,
+                                    value: globalVolumeMusicSettings,
+                                    changeVolume: (v) {
+                                      globalVolumeMusicSettings = v;
+                                      return volumeSettingsFunction(v);
+                                    },
                                   ),
                                   const SizedBox(
                                     height: 5,
@@ -108,7 +111,7 @@ class RoundButtonSettings extends StatelessWidget {
                                   const Text(
                                     'Sound',
                                     style: TextStyle(
-                                      color: Color.fromRGBO(255, 210, 23, 5),
+                                      color: Color.fromRGBO(255, 210, 23, 1),
                                       fontSize: 20,
                                       fontFamily: 'Digital',
                                       fontWeight: FontWeight.bold,
@@ -118,8 +121,11 @@ class RoundButtonSettings extends StatelessWidget {
                                     height: 2,
                                   ),
                                   SilderMusic(
-                                    value: value,
-                                    changeVolume: volumeSettingsSoundFunction,
+                                    value: globalVolumeSoundSettings,
+                                    changeVolume: (v) {
+                                      globalVolumeSoundSettings = v;
+                                      return volumeSettingsSoundFunction(v);
+                                    },
                                   ),
                                   const SizedBox(
                                     height: 10,
@@ -217,8 +223,8 @@ class RoundButtonSettings extends StatelessWidget {
                             child: RoundButton(
                               myIcon: Icons.exit_to_app,
                               href: href,
-                              couleur: Color.fromRGBO(255, 210, 23, 5),
-                              shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                              couleur: Color.fromRGBO(255, 210, 23, 1),
+                              shadowColor: Color.fromRGBO(255, 210, 23, 1),
                             ))
                       ],
                     ),
@@ -231,7 +237,7 @@ class RoundButtonSettings extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: const [
             BoxShadow(
-              color: Color.fromRGBO(255, 210, 23, 5),
+              color: Color.fromRGBO(255, 210, 23, 1),
               spreadRadius: 0,
               blurRadius: 0,
               offset: Offset(0, 4.2), // changes position of shadow
@@ -245,7 +251,7 @@ class RoundButtonSettings extends StatelessWidget {
             height: 35.0,
             width: 35.0,
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(255, 210, 23, 5),
+              color: const Color.fromRGBO(255, 210, 23, 1),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Center(
@@ -267,7 +273,7 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
   final SetVolumeFunction volumeSettingsFunction;
   final SetVolumeFunction volumeSettingsSoundFunction;
   final String href;
-  RoundButtonSettingsWhileLogged(
+  const RoundButtonSettingsWhileLogged(
       {super.key,
       required this.myIcon,
       required this.value,
@@ -355,7 +361,7 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
                                         'Music',
                                         style: TextStyle(
                                           color:
-                                              Color.fromRGBO(255, 210, 23, 5),
+                                              Color.fromRGBO(255, 210, 23, 1),
                                           fontSize: 20,
                                           fontFamily: 'Digital',
                                           fontWeight: FontWeight.bold,
@@ -365,8 +371,11 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
                                         height: 5,
                                       ),
                                       SilderMusic(
-                                        value: value,
-                                        changeVolume: volumeSettingsFunction,
+                                        value: globalVolumeMusicSettings,
+                                        changeVolume: (v) {
+                                          globalVolumeMusicSettings = v;
+                                          return volumeSettingsFunction(v);
+                                        },
                                       ),
                                       const SizedBox(
                                         height: 8,
@@ -375,7 +384,7 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
                                         'Sound',
                                         style: TextStyle(
                                           color:
-                                              Color.fromRGBO(255, 210, 23, 5),
+                                              Color.fromRGBO(255, 210, 23, 1),
                                           fontSize: 20,
                                           fontFamily: 'Digital',
                                           fontWeight: FontWeight.bold,
@@ -385,9 +394,11 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
                                         height: 5,
                                       ),
                                       SilderMusic(
-                                        value: value,
-                                        changeVolume:
-                                            volumeSettingsSoundFunction,
+                                        value: globalVolumeSoundSettings,
+                                        changeVolume: (v) {
+                                          globalVolumeSoundSettings = v;
+                                          return volumeSettingsSoundFunction(v);
+                                        },
                                       ),
                                       const SizedBox(
                                         height: 5,
@@ -487,8 +498,8 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
                               child: RoundButton(
                                 myIcon: Icons.exit_to_app,
                                 href: href,
-                                couleur: Color.fromRGBO(255, 210, 23, 5),
-                                shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                                couleur: Color.fromRGBO(255, 210, 23, 1),
+                                shadowColor: Color.fromRGBO(255, 210, 23, 1),
                               ))
                         ],
                       ),
@@ -502,7 +513,7 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: const [
             BoxShadow(
-              color: Color.fromRGBO(255, 210, 23, 5),
+              color: Color.fromRGBO(255, 210, 23, 1),
               spreadRadius: 0,
               blurRadius: 0,
               offset: Offset(0, 4.2), // changes position of shadow
@@ -516,7 +527,7 @@ class RoundButtonSettingsWhileLogged extends StatelessWidget {
             height: 35.0,
             width: 35.0,
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(255, 210, 23, 5),
+              color: const Color.fromRGBO(255, 210, 23, 1),
               borderRadius: BorderRadius.circular(100),
             ),
             child: Center(

@@ -7,8 +7,7 @@ import 'key_container.dart';
 
 class ShowChallenge extends StatefulWidget {
 
-  ShowChallenge({Key? key, required this.challengeInformation})
-      : super(key: key);
+  const ShowChallenge({super.key, required this.challengeInformation});
   final String challengeInformation;
 
   @override
@@ -109,7 +108,7 @@ class _ShowChallengeState extends State<ShowChallenge> {
                           onlineProgress.returnParent().updateData(onlineProgress.getUID());
                         }
                       } catch (e) {
-                        print(e);
+                        debugPrint('$e');
                       }
                       Navigator.pushNamed(context, '/games');
                     }, child: Text('Terminé')))

@@ -34,7 +34,7 @@ class cardBg extends StatelessWidget {
             width: 180.0,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(27.0),
-              color: this.coleur2,
+              color: coleur2,
             ),
           ),
           Positioned(
@@ -48,7 +48,7 @@ class cardBg extends StatelessWidget {
                   width: 180.0,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(27.0),
-                    color: this.coleur2,
+                    color: coleur2,
                     boxShadow: const [
                       //le shadow du box vert
                       BoxShadow(
@@ -75,11 +75,11 @@ class cardBg extends StatelessWidget {
                     child: Stack(
                       children: [
                         Center(
-                          child: Container(
+                          child: SizedBox(
                             height: 180.0,
                             width: 150.0,
                             child: Image.asset(
-                              'assets/images/${this.Photo}',
+                              'assets/images/$Photo',
                             ),
                           ),
                         ),
@@ -96,9 +96,9 @@ class cardBg extends StatelessWidget {
             left: 47.0,
             // child: RectangleButton(couleur2: Color.fromARGB(255, 102, 235, 0) , couleur1: Color.fromARGB(255, 79, 195, 7) ,text: this.title, ),
             child: RectangleButton(
-              couleur2: this.coleur2,
-              couleur1: this.coleur1,
-              text: this.title,
+              couleur2: coleur2,
+              couleur1: coleur1,
+              text: title,
             ),
           ),
         ]),
@@ -129,7 +129,7 @@ class CardBgWithWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> this.href));
+        Navigator.push(context, MaterialPageRoute(builder: (context)=> href));
       },
       child: SizedBox(
         height: 250.0,
@@ -141,7 +141,7 @@ class CardBgWithWidget extends StatelessWidget {
             width: 180.0,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(27.0),
-              color: this.coleur2,
+              color: coleur2,
             ),
           ),
           Positioned(
@@ -155,7 +155,7 @@ class CardBgWithWidget extends StatelessWidget {
                   width: 180.0,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(27.0),
-                    color: this.coleur2,
+                    color: coleur2,
                     boxShadow: const [
                       //le shadow du box vert
                       BoxShadow(
@@ -182,11 +182,11 @@ class CardBgWithWidget extends StatelessWidget {
                     child: Stack(
                       children: [
                         Center(
-                          child: Container(
+                          child: SizedBox(
                             height: 180.0,
                             width: 150.0,
                             child: Image.asset(
-                              'assets/images/${this.Photo}',
+                              'assets/images/$Photo',
                             ),
                           ),
                         ),
@@ -203,9 +203,9 @@ class CardBgWithWidget extends StatelessWidget {
             left: 47.0,
             // child: RectangleButton(couleur2: Color.fromARGB(255, 102, 235, 0) , couleur1: Color.fromARGB(255, 79, 195, 7) ,text: this.title, ),
             child: RectangleButton(
-              couleur2: this.coleur2,
-              couleur1: this.coleur1,
-              text: this.title,
+              couleur2: coleur2,
+              couleur1: coleur1,
+              text: title,
             ),
           ),
         ]),

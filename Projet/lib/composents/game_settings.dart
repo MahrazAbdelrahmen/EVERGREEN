@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import '../defis/key_container.dart';
-import 'package:audioplayers/audioplayers.dart';
 
 class GamesSettings extends StatelessWidget {
-  GamesSettings(
-      {Key? key,
+  const GamesSettings(
+      {super.key,
       required this.functionToBeUsed,
       required this.functionToResumeTimer,
-      required this.functionToStopTimer})
-      : super(key: key);
+      required this.functionToStopTimer});
   final void Function() functionToBeUsed;
   final void Function() functionToStopTimer;
   final void Function() functionToResumeTimer;
 
   @override
-  final _player = AudioPlayer();
-  final _audio = AudioCache();
   Widget build(BuildContext context) {
     void popAndResume() {
       functionToResumeTimer();
@@ -29,7 +25,6 @@ class GamesSettings extends StatelessWidget {
     }
 
     void popAndQuit() {
-      _player.stop();
       Navigator.popAndPushNamed(context, '/games');
     }
 
@@ -40,8 +35,8 @@ class GamesSettings extends StatelessWidget {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                content: WillPopScope(
-                  onWillPop: () async => false,
+                content: PopScope(
+                  canPop: false,
                   child: Center(
                     child: Container(
                       decoration: BoxDecoration(
@@ -134,11 +129,10 @@ class GamesSettings extends StatelessWidget {
 
 class SettingsButton extends StatelessWidget {
   const SettingsButton(
-      {Key? key,
+      {super.key,
       required this.color,
       required this.text,
-      required this.functionToBeUsed})
-      : super(key: key);
+      required this.functionToBeUsed});
   final Color color;
   final String text;
   final void Function() functionToBeUsed;

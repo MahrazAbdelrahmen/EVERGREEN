@@ -8,7 +8,7 @@ part of 'player.dart';
 
 class PlayerProgressAdapter extends TypeAdapter<PlayerProgress> {
   @override
-  final int typeId = 1;
+  final typeId = 1;
 
   @override
   PlayerProgress read(BinaryReader reader) {
@@ -17,10 +17,10 @@ class PlayerProgressAdapter extends TypeAdapter<PlayerProgress> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return PlayerProgress(
-      fields[0] as int,
+      (fields[0] as num).toInt(),
       (fields[2] as List).cast<LevelsCompleted>(),
       fields[3] as DateTime,
-      fields[1] as int,
+      (fields[1] as num).toInt(),
       fields[4] as String?,
       fields[5] as String?,
       fields[6] as String?,
@@ -63,7 +63,7 @@ class PlayerProgressAdapter extends TypeAdapter<PlayerProgress> {
 
 class LevelsCompletedAdapter extends TypeAdapter<LevelsCompleted> {
   @override
-  final int typeId = 2;
+  final typeId = 2;
 
   @override
   LevelsCompleted read(BinaryReader reader) {
@@ -71,10 +71,7 @@ class LevelsCompletedAdapter extends TypeAdapter<LevelsCompleted> {
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return LevelsCompleted(
-      fields[0] as int,
-      fields[1] as String,
-    );
+    return LevelsCompleted((fields[0] as num).toInt(), fields[1] as String);
   }
 
   @override
@@ -100,7 +97,7 @@ class LevelsCompletedAdapter extends TypeAdapter<LevelsCompleted> {
 
 class ParentAdapter extends TypeAdapter<Parent> {
   @override
-  final int typeId = 3;
+  final typeId = 3;
 
   @override
   Parent read(BinaryReader reader) {
@@ -110,7 +107,7 @@ class ParentAdapter extends TypeAdapter<Parent> {
     };
     return Parent(
       (fields[0] as List).cast<PlayerProgress>(),
-      fields[1] as int,
+      (fields[1] as num).toInt(),
       fields[2] as String?,
     );
   }

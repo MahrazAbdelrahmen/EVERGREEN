@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
+import 'package:sorttrash/composents/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sorttrash/button.dart';
@@ -10,7 +10,7 @@ import '../../../BackEnd/PlayerProgress/player.dart';
 import 'offline_data_profile_container.dart';
 
 class OfflineProfilesSelection extends StatefulWidget {
-  const OfflineProfilesSelection({Key? key}) : super(key: key);
+  const OfflineProfilesSelection({super.key});
 
   @override
   State<OfflineProfilesSelection> createState() =>

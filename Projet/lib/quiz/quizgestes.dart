@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sorttrash/quiz/quizmultiples.dart';
-import '../button.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../composents/game_settings.dart';
 
@@ -28,10 +27,16 @@ class QuizGestes extends StatefulWidget {
 class _QuizGestesState extends State<QuizGestes> {
   int? reponseUtilisateur;
   final _player = AudioPlayer();
-  final _audio = AudioCache();
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
   String showState = "none";
   Future<void> waitAndPop() async {
     await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -43,9 +48,6 @@ class _QuizGestesState extends State<QuizGestes> {
 
   @override
   void initState() {
-    _audio.load('music/correct.mp3');
-    _audio.load('music/wrong.mp3');
-    _audio.load(widget.SoundPath);
     _player.play(AssetSource(widget.SoundPath));
     super.initState();
   }
@@ -142,11 +144,11 @@ class _QuizGestesState extends State<QuizGestes> {
                       width: 0.75 * MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(33.0),
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         boxShadow: [
                           BoxShadow(
                             color: const Color.fromARGB(255, 0, 0, 0)
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                             offset: const Offset(0, 5),
                             blurRadius: 10,
                           ),
@@ -211,12 +213,12 @@ class _QuizGestesState extends State<QuizGestes> {
                                                           255, 251, 194, 240),
                                             ),
                                             color:
-                                                Colors.white.withOpacity(0.8),
+                                                Colors.white.withValues(alpha: 0.8),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: const Color.fromARGB(
                                                         255, 0, 0, 0)
-                                                    .withOpacity(0.5),
+                                                    .withValues(alpha: 0.5),
                                                 offset: const Offset(0, 5),
                                                 blurRadius: 10,
                                               ),
@@ -267,7 +269,7 @@ class _QuizGestesState extends State<QuizGestes> {
                                     ],
                                   ),
                                 ),
-                                Container(
+                                SizedBox(
                                   height:
                                       0.38 * MediaQuery.of(context).size.height,
                                   width:
@@ -317,12 +319,12 @@ class _QuizGestesState extends State<QuizGestes> {
                                                           255, 251, 194, 240),
                                             ),
                                             color:
-                                                Colors.white.withOpacity(0.8),
+                                                Colors.white.withValues(alpha: 0.8),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: const Color.fromARGB(
                                                         255, 0, 0, 0)
-                                                    .withOpacity(0.5),
+                                                    .withValues(alpha: 0.5),
                                                 offset: const Offset(0, 5),
                                                 blurRadius: 10,
                                               ),
@@ -390,7 +392,7 @@ class _QuizGestesState extends State<QuizGestes> {
                               boxShadow: [
                                 BoxShadow(
                                   color: const Color.fromARGB(181, 44, 43, 43)
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   offset: const Offset(0, 5),
                                   blurRadius: 10,
                                 ),
@@ -426,7 +428,7 @@ class _QuizGestesState extends State<QuizGestes> {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: Color.fromRGBO(255, 210, 23, 5),
+                      color: Color.fromRGBO(255, 210, 23, 1),
                       spreadRadius: 0,
                       blurRadius: 0,
                       offset:
@@ -441,7 +443,7 @@ class _QuizGestesState extends State<QuizGestes> {
                     height: 35.0,
                     width: 35.0,
                     decoration: BoxDecoration(
-                      color: Color.fromRGBO(255, 210, 23, 5),
+                      color: Color.fromRGBO(255, 210, 23, 1),
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Center(

@@ -41,7 +41,6 @@ class Level extends StatefulWidget {
 }
 
 class _LevelState extends State<Level> {
-  final _audio = AudioCache();
   late double screenHeight = MediaQuery.of(context).size.height;
   late double screenWidth = MediaQuery.of(context).size.width;
   late PlayerProgress playerProgress = currentProfileIndex == 1
@@ -124,8 +123,6 @@ class _LevelState extends State<Level> {
     globalMusicPlayerStartPage.stop();
     widget._copyOfArrayOfTrash.shuffle();
     widget._arrayOfTrash = widget._copyOfArrayOfTrash;
-    _audio.load('music/correct.mp3');
-    _audio.load('music/wrong.mp3');
     super.initState();
   }
 
@@ -142,11 +139,11 @@ class _LevelState extends State<Level> {
           ),
         ),
       ),
-      onWillAccept: (data) => true,
-      onAccept: (data) {
+      onWillAcceptWithDetails: (data) => true,
+      onAcceptWithDetails: (details) {
+        final data = details.data;
         if (trashCan.trashToGoThrough.contains(data.type)) {
           globalSoundPlayerStartPage.play(AssetSource('music/correct.mp3'));
-          globalSoundPlayerStartPage.stop();
           if (widget._arrayOfTrash.length == 1) {
             setState(() {
               playerProgress.score = 5*widget._copyOfArrayOfTrash.length;
@@ -177,7 +174,7 @@ class _LevelState extends State<Level> {
                 onlineProgress.returnParent().updateData(onlineProgress.getUID());
               }
             } catch (e) {
-              print(e);
+              debugPrint('$e');
             }
             Navigator.push(context, MaterialPageRoute(builder: (context) => BravoPage(score: playerProgress.score ,)));
           }
@@ -186,7 +183,6 @@ class _LevelState extends State<Level> {
           });
         } else {
           globalSoundPlayerStartPage.play(AssetSource('music/wrong.mp3'));
-          globalSoundPlayerStartPage.stop();
         }
       },
     );
@@ -219,9 +215,9 @@ class _LevelState extends State<Level> {
 class DraggableTrash extends StatelessWidget {
   final Trash trash;
   const DraggableTrash({
-    Key? key,
+    super.key,
     required this.trash,
-  }) : super(key: key);
+  });
   static double size = 50;
   @override
   Widget build(BuildContext context) => Draggable<Trash>(

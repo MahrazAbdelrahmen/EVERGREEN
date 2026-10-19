@@ -22,19 +22,16 @@ class _GamesMenuState extends State<GamesMenu> {
   final User? user = FirebaseAuth.instance.currentUser;
   @override
   void initState() {
+    super.initState();
     globalMusicPlayerStartPage.resume();
+    final user = this.user;
     if (user != null) {
-      if (!user!.emailVerified) {
-        setState(() {
-          user!.delete();
-          FirebaseAuth.instance.signOut();
-        });
+      if (!user.emailVerified) {
+        user.delete();
+        FirebaseAuth.instance.signOut();
       } else {
-        setState(() {
-          isSignedIn = true;
-        });
+        isSignedIn = true;
       }
-      super.initState();
     }
   }
   @override
@@ -59,7 +56,7 @@ class _GamesMenuState extends State<GamesMenu> {
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(right: 15.0),
-                        child: Container(
+                        child: SizedBox(
                           //pour creer un alignement des elements
                           height: 60.0,
                           width: 150.0,
@@ -69,14 +66,14 @@ class _GamesMenuState extends State<GamesMenu> {
                                 const RoundButton(
                                   href: '/',
                                   myIcon: Icons.home,
-                                  couleur: Color.fromRGBO(255, 210, 23, 5),
-                                  shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                                  couleur: Color.fromRGBO(255, 210, 23, 1),
+                                  shadowColor: Color.fromRGBO(255, 210, 23, 1),
                                 ), //le premier button
                                 const RoundButton(
                                   href: '/TrophiesPage',
                                   myIcon: Icons.star,
-                                  couleur: Color.fromRGBO(255, 210, 23, 5),
-                                  shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                                  couleur: Color.fromRGBO(255, 210, 23, 1),
+                                  shadowColor: Color.fromRGBO(255, 210, 23, 1),
                                 ), //le deuxieme button
                                 isSignedIn ?
                                 roundButtonSettingsWhileLogged

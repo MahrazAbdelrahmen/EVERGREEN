@@ -35,8 +35,8 @@ class _AnonChildSelector extends State<AnonChildSelector> {
           ],
         ),
       ),
-      body: WillPopScope(
-        onWillPop: () async => false,
+      body: PopScope(
+        canPop: false,
         child: IndexedStack(
           index: currentProfileIndex,
           children: screens,

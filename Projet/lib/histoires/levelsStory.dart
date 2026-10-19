@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sorttrash/button.dart';
 import 'package:sorttrash/histoires/storydesign.dart';
 import 'package:video_player/video_player.dart';
-import '../defis/challenge_screen.dart';
-import '../../composents/game_settings.dart';
 
 import '../StartPage/settings.dart';
 
@@ -123,7 +121,7 @@ class _levelsStoryState extends State<levelsStory> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 8.0),
-                child: Container(
+                child: SizedBox(
                   height: 60.0,
                   width: 60.0,
                   child: const Center(
@@ -138,7 +136,7 @@ class _levelsStoryState extends State<levelsStory> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 5.0, 15.0, 0.0),
-                child: Container(
+                child: SizedBox(
                   //pour creer un alignement des elements
                   height: 60.0,
                   width: 60.0,
@@ -149,15 +147,15 @@ class _levelsStoryState extends State<levelsStory> {
                         RoundButton(
                           href: '/',
                           myIcon: Icons.home,
-                          couleur: Color.fromRGBO(255, 210, 23, 5),
-                          shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                          couleur: Color.fromRGBO(255, 210, 23, 1),
+                          shadowColor: Color.fromRGBO(255, 210, 23, 1),
                         ), //le premier button
                       ]),
                 ),
               ),
             ],
           ),
-          Container(
+          SizedBox(
             height: 0.7 * MediaQuery.of(context).size.height,
             width: 0.7 * MediaQuery.of(context).size.width,
             child: Column(
@@ -299,7 +297,7 @@ class _levelsStoryState extends State<levelsStory> {
 class VideoPlayerWidget extends StatefulWidget {
   final String videoPath;
 
-  VideoPlayerWidget({required this.videoPath});
+  const VideoPlayerWidget({super.key, required this.videoPath});
 
   @override
   _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
@@ -366,7 +364,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           future: _initializeVideoFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              return Container(
+              return SizedBox(
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
                 // alignment: Alignment.center,       
@@ -392,13 +390,12 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  child: Text('Replay'),
                   onPressed: _replayVideo,
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                         Colors.purpleAccent), // Set the desired color
 
-                    textStyle: MaterialStateProperty.all<TextStyle>(
+                    textStyle: WidgetStateProperty.all<TextStyle>(
                       TextStyle(
                         fontSize: 16, // Set the desired font size
                         fontWeight:
@@ -407,16 +404,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                       ),
                     ),
                   ),
+                  child: Text('Replay'),
                 ),
                 SizedBox(width: 16.0),
                 ElevatedButton(
-                  child: Text('Exit'),
                   onPressed: _exitVideo,
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
+                    backgroundColor: WidgetStateProperty.all<Color>(
                         Colors.purpleAccent), // Set the desired color
 
-                    textStyle: MaterialStateProperty.all<TextStyle>(
+                    textStyle: WidgetStateProperty.all<TextStyle>(
                       TextStyle(
                         fontSize: 16, // Set the desired font size
                         fontWeight:
@@ -425,6 +422,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                       ),
                     ),
                   ),
+                  child: Text('Exit'),
                 ),
               ],
             ),

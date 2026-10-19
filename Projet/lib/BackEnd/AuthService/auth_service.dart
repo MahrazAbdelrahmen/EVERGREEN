@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sorttrash/BackEnd/AuthService/user_info.dart';
@@ -22,11 +23,12 @@ class AuthService {
       User? user = result.user;
       return _userfromfirebaseUser(user);
     } catch (e) {
-      print(e.toString());
+      debugPrint('$e');
       return null;
     }
   }
   Future<void> resetPassword(String email) async {
+    error = false;
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } catch (e) {
@@ -37,18 +39,27 @@ class AuthService {
   }
 
   Future logIn( String email, String password ) async {
+    error = false;
     try {
-      await FirebaseAuth.instance
+      final credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
           email: email, password: password);
-     onlineProgress.setParent(await onlineParent.fetchParentData(FirebaseAuth.instance.currentUser!.uid)) ;
+      final uid = credential.user!.uid;
+      final parent = await onlineParent.fetchParentData(uid);
+      onlineProgress.setUID(uid);
+      if (parent != null) {
+        onlineProgress.setParent(parent);
+        onlineProgress.setPlayers(parent.children);
+        playersOnline = onlineProgress.returnPlayers();
+        onlineParentBox.put(uid, parent);
+      }
     }
     on FirebaseAuthException   catch (e) {
       error  = true;
-      errorMessage = e.message!;
+      errorMessage = e.message ?? e.code;
     }
     on Exception catch (e) {
-      print(e.toString());
+      debugPrint('$e');
       error  = true;
       errorMessage = e.toString();
     }
@@ -59,17 +70,16 @@ class AuthService {
   }
 
   Future registerWithEmail( String email, String password ) async {
+    error = false;
     try {
-      print(password + ' ' + email);
       await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
           email: email, password: password);
 
     }
     on FirebaseAuthException catch (e) {
-      print(e);
       error  = true;
-      errorMessage = e.message!;
+      errorMessage = e.message ?? e.code;
     }
     if ( !error  ) {
       navigatorKey.currentState!.pushReplacementNamed('/VerifyUserEmail');
@@ -79,7 +89,7 @@ class AuthService {
     try {
       return await _auth.signOut();
     } catch (error) {
-      print(error.toString());
+      debugPrint('$error');
       return null;
     }
   }

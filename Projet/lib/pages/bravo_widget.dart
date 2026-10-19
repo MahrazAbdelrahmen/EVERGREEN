@@ -5,26 +5,23 @@ import 'package:sorttrash/StartPage/settings.dart';
 import '../defis/key_container.dart';
 
 class BravoPage extends StatefulWidget {
-  const BravoPage({Key? key, required this.score}) : super(key: key);
+  const BravoPage({super.key, required this.score});
   final int score;
   @override
   State<BravoPage> createState() => _BravoPageState();
 }
 
 class _BravoPageState extends State<BravoPage> {
-  final _audio = AudioCache();
   @override
   void initState() {
     setState((){
       globalMusicPlayerStartPage.stop();
-      _audio.load("music/finishedgame.mp3");
       globalSoundPlayerStartPage.play(AssetSource("music/finishedgame.mp3"));
     });
     super.initState();
   }
   @override
   void dispose() {
-    _audio.clearAll();
     globalSoundPlayerStartPage.stop();
     super.dispose();
   }

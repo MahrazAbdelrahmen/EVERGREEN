@@ -13,7 +13,7 @@ import 'key_container.dart';
 int kcpt = 0;
 
 class ChallengesScreen extends StatefulWidget {
-  const ChallengesScreen({Key? key}) : super(key: key);
+  const ChallengesScreen({super.key});
 
   @override
   State<ChallengesScreen> createState() => _ChallengesScreenState();
@@ -21,6 +21,12 @@ class ChallengesScreen extends StatefulWidget {
 
 class _ChallengesScreenState extends State<ChallengesScreen> {
   final AudioPlayer audioPlayer = AudioPlayer();
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
   final roundButtonSettingsWhileLogged = RoundButtonSettingsWhileLogged(
       href: '/defis',
       myIcon: Icons.settings,
@@ -117,7 +123,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                 SizedBox(width: MediaQuery.of(context).size.width - 250,),
                 const RoundButton(href: '/', myIcon: Icons.home_filled, couleur: Colors.greenAccent, shadowColor: Colors.greenAccent,),
                 const SizedBox(width: 10,),
-                const RoundButton(href: '/TrophiesPage', myIcon:  Icons.star, couleur: Color.fromRGBO(255, 210, 23, 5), shadowColor:  Color.fromRGBO(255, 210, 23, 5),),
+                const RoundButton(href: '/TrophiesPage', myIcon:  Icons.star, couleur: Color.fromRGBO(255, 210, 23, 1), shadowColor:  Color.fromRGBO(255, 210, 23, 1),),
                 const SizedBox(width: 10,),
                 isSignedIn ?
                 roundButtonSettingsWhileLogged
@@ -181,7 +187,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
         onlineProgress.returnParent().updateData(onlineProgress.getUID());
       }
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 

@@ -4,7 +4,7 @@ const Color pm = Color.fromRGBO(177, 229, 242, 1);
 const Color sm = Color.fromRGBO(131, 85, 253, 1);
 const Color sm1 = Color.fromRGBO(253,194,17, 1);
 class KeyContainer extends StatefulWidget {
-  const KeyContainer({Key? key, required this.state, required this.text}) : super(key: key);
+  const KeyContainer({super.key, required this.state, required this.text});
   final bool state;
   final String text;
   bool returnState(){
@@ -32,14 +32,13 @@ class _KeyContainerState extends State<KeyContainer> {
 
 class ContainerDesign extends StatelessWidget {
    const ContainerDesign(
-      {Key? key,
+      {super.key,
       required this.primaryColor,
       required this.secondaryColor,
       required this.assetImage,
       required this.text,
       required this.isLocked
-      })
-      : super(key: key);
+      });
   final Color primaryColor;
   final Color secondaryColor;
   final String assetImage;

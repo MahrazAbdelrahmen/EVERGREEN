@@ -9,7 +9,7 @@ import '../../main.dart';
 
 
 class VerifyUserEmail extends StatefulWidget {
-  const VerifyUserEmail({Key? key}) : super(key: key);
+  const VerifyUserEmail({super.key});
   @override
   State<VerifyUserEmail> createState() => _VerifyUserEmailState();
 }
@@ -64,7 +64,7 @@ class _VerifyUserEmailState extends State<VerifyUserEmail> {
         await navigatorKey.currentState!.pushReplacementNamed('/ChildSelector');
       }
     } on FirebaseAuthException catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 }

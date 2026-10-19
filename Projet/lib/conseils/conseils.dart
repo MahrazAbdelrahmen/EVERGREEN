@@ -229,11 +229,16 @@ class Conseils extends StatefulWidget {
 class _ConseilsState extends State<Conseils> {
   bool isSignedIn = false;
   final _player = AudioPlayer();
-  final _audio = AudioCache();
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
   final User? user = FirebaseAuth.instance.currentUser;
+  @override
   void initState() {
     globalMusicPlayerStartPage.stop();
-    _audio.load(widget.cons[widget.currentAdvice].SoundPath);
     _player.play(AssetSource(widget.cons[0].SoundPath));
     if (user != null) {
       if (!user!.emailVerified) {
@@ -333,7 +338,7 @@ class _ConseilsState extends State<Conseils> {
                       ),
                     ],
                   ), //les bouttons en haut
-                  Container(
+                  SizedBox(
                     //debut de corps de conseils
                     height: 0.67 * MediaQuery.of(context).size.height,
                     width: 0.6 * MediaQuery.of(context).size.width,
@@ -390,14 +395,14 @@ class _ConseilsState extends State<Conseils> {
                                     borderRadius: BorderRadius.circular(20.0),
                                   ),
                                   child: Center(
-                                    child: Container(
+                                    child: SizedBox(
                                       height: 0.35 *
                                           MediaQuery.of(context).size.height,
                                       width: 0.4 *
                                           MediaQuery.of(context).size.width,
                                       child: Center(
                                         child: Text(
-                                          "${widget.cons[widget.currentAdvice].contenu}",
+                                          widget.cons[widget.currentAdvice].contenu,
                                           style: const TextStyle(
                                             fontSize: 20.0,
                                             color: Color.fromARGB(
@@ -428,7 +433,7 @@ class _ConseilsState extends State<Conseils> {
                                     child: FittedBox(
                                       fit: BoxFit.scaleDown,
                                       child: Text(
-                                        '${widget.cons[widget.currentAdvice].titre}',
+                                        widget.cons[widget.currentAdvice].titre,
                                         style: const TextStyle(
                                           fontFamily: 'Digital',
                                           color: Colors.white,

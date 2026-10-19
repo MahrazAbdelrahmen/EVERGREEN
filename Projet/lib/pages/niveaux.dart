@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sorttrash/button.dart';
 import 'package:sorttrash/sort_game/Levels/levels_managment.dart';
-import 'dart:ui' as ui;
 import '../composents/niveau.dart';
 
 //la page de la gestion de niveaux
-double width = ui.window.physicalSize.width;
-double height = ui.window.physicalSize.height;
 
 class Niveaux extends StatefulWidget {
   late LevelManagement _levelManagement;
@@ -35,6 +32,8 @@ class _NiveauxState extends State<Niveaux> {
   }
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       body: Center(
         child: Container(
@@ -56,7 +55,7 @@ class _NiveauxState extends State<Niveaux> {
                     height: 60.0,
                     width: 60.0,
                     child: Center(
-                      child: RoundButton(href: '/games', myIcon: Icons.arrow_back , couleur: Color.fromRGBO(255, 210, 23, 5), shadowColor:  Color.fromRGBO(255, 210, 23, 5) ,),
+                      child: RoundButton(href: '/games', myIcon: Icons.arrow_back , couleur: Color.fromRGBO(255, 210, 23, 1), shadowColor:  Color.fromRGBO(255, 210, 23, 1) ,),
                     ),
                   ),
                 ),
@@ -72,7 +71,7 @@ class _NiveauxState extends State<Niveaux> {
                         children: [
                           const RoundButton(
                               href: '/',
-                              myIcon: Icons.home , couleur: Color.fromRGBO(255, 210, 23, 5), shadowColor: Color.fromRGBO(255, 210, 23, 5) ,), //le premier button
+                              myIcon: Icons.home , couleur: Color.fromRGBO(255, 210, 23, 1), shadowColor: Color.fromRGBO(255, 210, 23, 1) ,), //le premier button
                         ]),
                   ),
                 ),
@@ -113,12 +112,12 @@ class _NiveauxState extends State<Niveaux> {
                                   Stack(
                                     children: [
                                       SizedBox(
-                                        height: 0.4 * height,
+                                        height: 0.75 * height,
                                         width: 50.0,
                                         // color: Colors.amber,
                                       ),
                                       Positioned(
-                                        top: 0.1 * height,
+                                        top: (0.75 * height - 170) / 2,
                                         child: SizedBox(
                                             width: 50.0,
                                             height: 170,

@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:sorttrash/button.dart';
 
 class NoPlayerSelectedPage extends StatelessWidget {
-  const NoPlayerSelectedPage({Key? key}) : super(key: key);
+  const NoPlayerSelectedPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WillPopScope(
-        onWillPop: () async => false,
+      body: PopScope(
+        canPop: false,
         child: Center(
           child: SingleChildScrollView(
             child: Column(

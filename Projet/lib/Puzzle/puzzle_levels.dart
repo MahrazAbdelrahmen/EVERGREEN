@@ -1,13 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:sorttrash/button.dart';
-import 'dart:ui' as ui;
 import 'Models/puzzle_management.dart';
 import 'level_design.dart';
 
 
-double width = ui.window.physicalSize.width;
-double height = ui.window.physicalSize.height;
 
 class PuzzleLevels extends StatefulWidget {
   late PuzzleManagement _puzzleManagement;
@@ -30,6 +27,8 @@ class PuzzleLevels extends StatefulWidget {
 class _PuzzleLevels extends State<PuzzleLevels> {
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       body: Center(
         child: Container(
@@ -66,7 +65,7 @@ class _PuzzleLevels extends State<PuzzleLevels> {
                         children: [
                           const RoundButton(
                             href: '/',
-                            myIcon: Icons.home , couleur: Color.fromRGBO(255, 210, 23, 5), shadowColor: Color.fromRGBO(255, 210, 23, 5) ,), //le premier button
+                            myIcon: Icons.home , couleur: Color.fromRGBO(255, 210, 23, 1), shadowColor: Color.fromRGBO(255, 210, 23, 1) ,), //le premier button
                         ]),
                   ),
                 ),
@@ -112,7 +111,7 @@ class _PuzzleLevels extends State<PuzzleLevels> {
                                       // color: Colors.amber,
                                     ),
                                       Positioned(
-                                        top: 0.1 * height,
+                                        top: (0.75 * height - 170) / 2,
                                         child: SizedBox(
                                             width: 50.0,
                                             height: 170,

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sorttrash/button.dart';
-import 'dart:ui' as ui;
 import 'NiveauQuiz.dart';
 import 'managementQuiz.dart';
 
 //la page de la gestion de niveaux
-double width = ui.window.physicalSize.width;
-double height = ui.window.physicalSize.height;
 
 class NiveauxQuiz extends StatefulWidget {
   late final  Management _levelManagement;
@@ -35,6 +32,8 @@ class _NiveauxQuizState extends State<NiveauxQuiz> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
+    final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       body: Center(
         child: Container(
@@ -59,8 +58,8 @@ class _NiveauxQuizState extends State<NiveauxQuiz> {
                       child: RoundButton(
                         href: '/games',
                         myIcon: Icons.arrow_back,
-                        couleur: Color.fromRGBO(255, 210, 23, 5),
-                        shadowColor: Color.fromRGBO(255, 210, 23, 5) ,
+                        couleur: Color.fromRGBO(255, 210, 23, 1),
+                        shadowColor: Color.fromRGBO(255, 210, 23, 1) ,
                       ),
                     ),
                   ),
@@ -78,8 +77,8 @@ class _NiveauxQuizState extends State<NiveauxQuiz> {
                           const RoundButton(
                             href: '/',
                             myIcon: Icons.home,
-                            couleur: Color.fromRGBO(255, 210, 23, 5),
-                            shadowColor: Color.fromRGBO(255, 210, 23, 5) ,
+                            couleur: Color.fromRGBO(255, 210, 23, 1),
+                            shadowColor: Color.fromRGBO(255, 210, 23, 1) ,
                           ), //le premier button
                         ]),
                   ),
@@ -126,7 +125,7 @@ class _NiveauxQuizState extends State<NiveauxQuiz> {
                                         // color: Colors.amber,
                                       ),
                                       Positioned(
-                                        top: 0.1 * height,
+                                        top: (0.75 * height - 170) / 2,
                                         child: SizedBox(
                                             width: 50.0,
                                             height: 170,

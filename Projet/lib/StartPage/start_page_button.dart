@@ -5,7 +5,7 @@ import '../player_box.dart';
 
 
 class AnonButton extends StatelessWidget {
-  const AnonButton({Key? key, required this.href, required this.color, required this.text}) : super(key: key);
+  const AnonButton({super.key, required this.href, required this.color, required this.text});
   final String href;
   final Color color ;
   final String text;

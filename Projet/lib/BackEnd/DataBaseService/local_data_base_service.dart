@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../player_box.dart';
@@ -17,7 +18,7 @@ class DataBaseService {
     _players = players;
   }
   // ajouter un enfant
-  addElementProgress(String childName, int childAge, String profileImage) {
+  void addElementProgress(String childName, int childAge, String profileImage) {
     if (!(childName == '' || childAge >= 100 || childAge <= 3)) { // verification d'age
       int index = 0;
       if (parentBox.isEmpty) { // si la base est vide
@@ -64,7 +65,7 @@ class DataBaseService {
       _parent = parentBox.getAt(0);
       playerProgress = offlineProgress.returnParent().children[globalChildKey];
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
     if (index < 0 ||
         index >= playerProgress.gamesData[levelNumber].levelsCompleted.length) {
@@ -82,7 +83,7 @@ class DataBaseService {
       _parent = parentBox.getAt(0);
       playerProgress = offlineProgress.returnParent().children[globalChildKey];
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
     if (index < 0 ||
         index >= playerProgress.gamesData[levelNumber].levelsCompleted.length || playerProgress.lastChallengeDate == null) {
@@ -91,7 +92,6 @@ class DataBaseService {
     if (playerProgress.gamesData[levelNumber].levelsCompleted[index] == '0') {
       return true;
     } else {
-      print((isExactlyOneDayApart(playerProgress.lastChallengeDate!, DateTime.now())));
       if (playerProgress.gamesData[levelNumber].levelsCompleted[index] == '1'){
         return false;
       }
@@ -107,9 +107,8 @@ class DataBaseService {
     return difference.inDays.abs() >= 1;
   }
   // Procedure qui permet de supprimer un enfant 
-  deleteElementProgress(PlayerProgress playerProgress) {
+  void deleteElementProgress(PlayerProgress playerProgress) {
     _parent.numberOfChildren--;
-    print(_players.length);
     int i = _players.indexOf(playerProgress);
     _players.remove(playerProgress);
     while (i < _players.length) {
@@ -121,7 +120,7 @@ class DataBaseService {
     parentBox.putAt(0, _parent);
   }
   // procédure qui permet de faire des mises à jour sur les données de l'utilisateur 
-  updateElementProgress(
+  void updateElementProgress(
       PlayerProgress playerProgress, String childName, int childAge) {
     if (!(childName == '' || childAge >= 100 || childAge <= 3)) {
       playerProgress.childsName = childName;
@@ -133,11 +132,11 @@ class DataBaseService {
     }
   }
 
-  setParent(Parent parent) {
+  void setParent(Parent parent) {
     _parent = parent;
   }
 
-  setPlayers(List<PlayerProgress> players) {
+  void setPlayers(List<PlayerProgress> players) {
     _players = players;
   }
 
@@ -149,39 +148,39 @@ class DataBaseService {
     return _players;
   }
 
-  incrementChildrenCount() {
+  void incrementChildrenCount() {
     _parent.numberOfChildren++;
   }
 
-  decrementChildrenCount() {
+  void decrementChildrenCount() {
     _parent.numberOfChildren--;
   }
 
-  setParentChildren(List<PlayerProgress> children) {
+  void setParentChildren(List<PlayerProgress> children) {
     _parent.children = children;
   }
 
-  addChild(PlayerProgress playerProgress) {
+  void addChild(PlayerProgress playerProgress) {
     _players.add(playerProgress);
   }
 
-  removeChild(PlayerProgress playerProgress) {
+  void removeChild(PlayerProgress playerProgress) {
     _players.remove(playerProgress);
   }
 
-  decrementChildID(int index) {
+  void decrementChildID(int index) {
     try {
       _players[index].childID--;
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 
-  setChild(int index, PlayerProgress playerProgress) {
+  void setChild(int index, PlayerProgress playerProgress) {
     try {
       _parent.children[index] = playerProgress;
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 }

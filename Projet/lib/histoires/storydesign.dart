@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sorttrash/button.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../composents/game_settings.dart';
 
@@ -20,26 +19,27 @@ class storyDesign extends StatefulWidget {
 
 class _storyDesignState extends State<storyDesign> {
   final _player = AudioPlayer();
-  final _audio = AudioCache();
-  int CurrentIndex = 0;
+
   @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
+  int CurrentIndex = 0;
   void replay() {
     setState(() {
-      setState(() {
       CurrentIndex = 0;
-      });
     });
   }
 
   void decoy() {}
+  @override
   void initState() {
-    _audio.load('music/correct.mp3');
-    _audio.load('music/wrong.mp3');
-    _audio.load(widget.storys[CurrentIndex].SoundPath);
     _player.play(AssetSource(widget.storys[0].SoundPath));
     super.initState();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -60,7 +60,7 @@ class _storyDesignState extends State<storyDesign> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(left: 8.0),
-                child: Container(
+                child: SizedBox(
                   height: 60.0,
                   width: 60.0,
                   child: Center(
@@ -109,7 +109,7 @@ class _storyDesignState extends State<storyDesign> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 5.0, 15.0, 0.0),
-                child: Container(
+                child: SizedBox(
                   //pour creer un alignement des elements
                   height: 60.0,
                   width: 60.0,
@@ -127,13 +127,13 @@ class _storyDesignState extends State<storyDesign> {
               ),
             ],
           ),
-          Container(
+          SizedBox(
             //le corps des histoires
             height: 0.8 * MediaQuery.of(context).size.height,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Container(
+                SizedBox(
                   width: 0.09 * MediaQuery.of(context).size.width,
                   child: (CurrentIndex != 0)
                       ? InkWell(
@@ -162,7 +162,7 @@ class _storyDesignState extends State<storyDesign> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Container(
+                        SizedBox(
                           width: 0.25 * MediaQuery.of(context).size.width,
                           height: 0.7 * MediaQuery.of(context).size.height,
                           child: (CurrentIndex % 2 != 0)
@@ -182,7 +182,7 @@ class _storyDesignState extends State<storyDesign> {
                                   ),
                                 ),
                         ),
-                        Container(
+                        SizedBox(
                           width: 0.25 * MediaQuery.of(context).size.width,
                           height: 0.7 * MediaQuery.of(context).size.height,
                           child: (CurrentIndex % 2 == 0)
@@ -206,7 +206,7 @@ class _storyDesignState extends State<storyDesign> {
                     ),
                   ),
                 ),
-                Container(
+                SizedBox(
                   width: 0.09 * MediaQuery.of(context).size.width,
                   child: (CurrentIndex != widget.storys.length - 1)
                       ? InkWell(

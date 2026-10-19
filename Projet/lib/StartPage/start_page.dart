@@ -6,7 +6,7 @@ import 'package:sorttrash/StartPage/start_page_button.dart';
 import 'package:sorttrash/player_box.dart';
 
 class StartPage extends StatefulWidget {
-  const StartPage({Key? key}) : super(key: key);
+  const StartPage({super.key});
 
   @override
   State<StartPage> createState() => _StartPageState();
@@ -30,30 +30,23 @@ class _StartPageState extends State<StartPage> {
   final User? user = FirebaseAuth.instance.currentUser;
   @override
   void dispose() {
-    globalMusicCacheStartPage.clearAll();
     globalMusicPlayerStartPage.stop();
     super.dispose();
   }
   @override
   void initState() {
-    setState(() {
-      globalMusicPlayerStartPage.setReleaseMode(ReleaseMode.loop);
-      globalMusicPlayerStartPage.setVolume(0.5);
-      globalMusicCacheStartPage.load("music/gamebackground.mp3");
-      globalMusicPlayerStartPage.play(AssetSource("music/gamebackground.mp3"));
-    });
+    super.initState();
+    globalMusicPlayerStartPage.setReleaseMode(ReleaseMode.loop);
+    globalMusicPlayerStartPage.play(AssetSource("music/gamebackground.mp3"),
+        volume: globalVolumeMusicSettings);
+    final user = this.user;
     if (user != null) {
-      if (!user!.emailVerified) {
-        setState(() {
-          user!.delete();
-          FirebaseAuth.instance.signOut();
-        });
+      if (!user.emailVerified) {
+        user.delete();
+        FirebaseAuth.instance.signOut();
       } else {
-        setState(() {
-          isSignedIn = true;
-        });
+        isSignedIn = true;
       }
-      super.initState();
     }
   }
 
@@ -103,12 +96,12 @@ class _StartPageState extends State<StartPage> {
                           const AnonButton(
                             text: 'Jouer',
                             href: '/ChildSelector',
-                            color: Color.fromRGBO(255, 210, 23, 5),
+                            color: Color.fromRGBO(255, 210, 23, 1),
                           ),
                           const SizedBox(width: 20,),
                           isSignedIn
-                              ? AnonButton(href: '/ProfilePage' , color: Color.fromRGBO(255, 210, 23, 5),text: 'Profile',)
-                              : AnonButton(href: '/LoginPage' , color: Color.fromRGBO(255, 210, 23, 5),text: 'Connecter',),
+                              ? AnonButton(href: '/ProfilePage' , color: Color.fromRGBO(255, 210, 23, 1),text: 'Profile',)
+                              : AnonButton(href: '/LoginPage' , color: Color.fromRGBO(255, 210, 23, 1),text: 'Connecter',),
                         ],
                       ),
                     ),

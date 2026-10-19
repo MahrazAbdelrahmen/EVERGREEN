@@ -40,13 +40,13 @@ class _NiveauState extends State<Niveau> {
                 ).then((_) => setState(() {}));
               }
             },
-            child: Container(
+            child: SizedBox(
               height: 120.0,
               width: 100,
               child: !widget.href.returnIsLocked()
                   ? Stack(
                       children: [
-                        Container(
+                        SizedBox(
                           height: 120.0,
                           width: 100,
                         ),
@@ -66,7 +66,7 @@ class _NiveauState extends State<Niveau> {
                     )
                   : Stack(
                       children: [
-                        Container(
+                        SizedBox(
                           height: 120.0,
                           width: 100,
                         ),

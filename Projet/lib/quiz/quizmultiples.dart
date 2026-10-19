@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../button.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../composents/game_settings.dart';
-import 'package:audioplayers/audioplayers.dart' as audio;
 
-final _player = AudioPlayer(); 
 bool Indi = false;
 
 class Indication {
@@ -47,14 +43,19 @@ class QuizMultiples extends StatefulWidget { //le ui et le corps des quiz multip
 }
 
 class _QuizMultiplesState extends State<QuizMultiples> {
-  audio.AudioPlayer audioPlayer = audio.AudioPlayer();
-  AudioCache audioCache = AudioCache();
-  final _audio = AudioCache();
+  final _player = AudioPlayer();
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
   int? reponseUtilisateur; //la reponse d'utilisateur
   String showState = "none"; //pour afficher si vert si juste, rouge si faux ou rien si n'est pas selectionné
 
   Future<void> waitAndPop() async {
     await Future.delayed(const Duration(seconds: 1)); //attendre une seconde avant le retour à l'ancienne page
+    if (!mounted) return;
     Navigator.pop(context, false);
     // Navigator.push(context, MaterialPageRoute(builder: ((context) => const ExplicationPage(Explication: "Explication"))));
   }
@@ -67,9 +68,6 @@ class _QuizMultiplesState extends State<QuizMultiples> {
 
   @override
   void initState() {
-    _audio.load('music/correct.mp3');
-    _audio.load('music/wrong.mp3');
-    _audio.load(widget.SoundPath);
     _player.play(AssetSource(widget.SoundPath));
     super.initState();
   }
@@ -164,11 +162,11 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                       width: 0.75 * MediaQuery.of(context).size.width,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(33.0),
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         boxShadow: [
                           BoxShadow(
                             color: const Color.fromARGB(255, 0, 0, 0)
-                                .withOpacity(0.5),
+                                .withValues(alpha: 0.5),
                             offset: const Offset(0, 5),
                             blurRadius: 10,
                           ),
@@ -192,7 +190,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                               boxShadow: [
                                 BoxShadow(
                                   color: const Color.fromARGB(181, 44, 43, 43)
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   offset: const Offset(0, 5),
                                   blurRadius: 10,
                                 ),
@@ -262,7 +260,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                                                         .width,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
-                                                      .withOpacity(0.7),
+                                                      .withValues(alpha: 0.7),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           18.0),
@@ -384,7 +382,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                                                         .width,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
-                                                      .withOpacity(0.7),
+                                                      .withValues(alpha: 0.7),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           18.0),
@@ -511,7 +509,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                                                         .width,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
-                                                      .withOpacity(0.7),
+                                                      .withValues(alpha: 0.7),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           18.0),
@@ -632,7 +630,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                                                         .width,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white
-                                                      .withOpacity(0.7),
+                                                      .withValues(alpha: 0.7),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           18.0),
@@ -746,7 +744,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: Color.fromRGBO(255, 210, 23, 5),
+                              color: Color.fromRGBO(255, 210, 23, 1),
                               spreadRadius: 0,
                               blurRadius: 0,
                               offset: const Offset(
@@ -761,7 +759,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                             height: 35.0,
                             width: 35.0,
                             decoration: BoxDecoration(
-                              color: Color.fromRGBO(255, 210, 23, 5),
+                              color: Color.fromRGBO(255, 210, 23, 1),
                               borderRadius: BorderRadius.circular(100),
                             ),
                             child: Center(
@@ -800,7 +798,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                         decoration: BoxDecoration(
                           boxShadow: [
                             BoxShadow(
-                              color: Color.fromRGBO(255, 210, 23, 5),
+                              color: Color.fromRGBO(255, 210, 23, 1),
                               spreadRadius: 0,
                               blurRadius: 0,
                               offset: const Offset(
@@ -815,7 +813,7 @@ class _QuizMultiplesState extends State<QuizMultiples> {
                             height: 35.0,
                             width: 35.0,
                             decoration: BoxDecoration(
-                              color: Color.fromRGBO(255, 210, 23, 5),
+                              color: Color.fromRGBO(255, 210, 23, 1),
                               borderRadius: BorderRadius.circular(100),
                             ),
                             child: Center(
@@ -854,15 +852,20 @@ class PageIndication extends StatefulWidget {
 
 class _PageIndicationState extends State<PageIndication> {
   final _player = AudioPlayer();
-  final _audio = AudioCache();
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
   @override
   void initState() {
     // TODO: implement initState
-    _audio.load(widget.SoundPath);
     _player.play(AssetSource(widget.SoundPath));
     super.initState();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: Container(
@@ -884,7 +887,7 @@ class _PageIndicationState extends State<PageIndication> {
               SizedBox(
                 height: 0.2 * MediaQuery.of(context).size.height,
               ),
-              Container(
+              SizedBox(
                 //le text de l'indication
                 height: 0.35 * MediaQuery.of(context).size.height,
                 width: 0.4 * MediaQuery.of(context).size.width,
@@ -952,7 +955,6 @@ class _PageIndicationState extends State<PageIndication> {
                 onTap: () {
                   _player.stop();
                   _player.play(AssetSource(widget.SoundPath));
-                  _player.stop();
                 },
                 child: Container(
                   height: 40.0,
@@ -960,7 +962,7 @@ class _PageIndicationState extends State<PageIndication> {
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: Color.fromRGBO(255, 210, 23, 5),
+                        color: Color.fromRGBO(255, 210, 23, 1),
                         spreadRadius: 0,
                         blurRadius: 0,
                         offset:
@@ -975,7 +977,7 @@ class _PageIndicationState extends State<PageIndication> {
                       height: 35.0,
                       width: 35.0,
                       decoration: BoxDecoration(
-                        color: Color.fromRGBO(255, 210, 23, 5),
+                        color: Color.fromRGBO(255, 210, 23, 1),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Center(

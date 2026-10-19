@@ -4,13 +4,15 @@ import 'package:sorttrash/button.dart';
 import '../LoginPage/Cred/login_cred.dart';
 
 class ResetPasswordButton extends StatefulWidget {
+  const ResetPasswordButton({super.key});
+
   @override
   _ResetPasswordButtonState createState() => _ResetPasswordButtonState();
 }
 
 class _ResetPasswordButtonState extends State<ResetPasswordButton> {
   final TextEditingController _emailController = TextEditingController();
-  AuthService _auth = new AuthService();
+  final AuthService _auth = AuthService();
   @override
   void dispose() {
     _emailController.dispose();
@@ -88,7 +90,6 @@ class _ResetPasswordButtonState extends State<ResetPasswordButton> {
                                 padding: const EdgeInsets.all(25.0),
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    print(MediaQuery.of(context).size);
                                     _auth.error = false;
                                     if (_mykey.currentState!.validate()) {
                                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -111,6 +112,18 @@ class _ResetPasswordButtonState extends State<ResetPasswordButton> {
                                               content: Text(
                                                 '📢 : ${_auth.errorMessage} ',
                                                 style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontFamily: 'Digital',
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13),
+                                              )));
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                              duration: Duration(seconds: 6),
+                                              backgroundColor: Colors.green,
+                                              content: Text(
+                                                '📧 : E-mail de réinitialisation envoyé !',
+                                                style: TextStyle(
                                                     color: Colors.white,
                                                     fontFamily: 'Digital',
                                                     fontWeight: FontWeight.bold,

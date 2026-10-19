@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../BackEnd/PlayerProgress/player.dart';
 
 class LeaderBoard extends StatefulWidget {
-  const LeaderBoard({Key? key}) : super(key: key);
+  const LeaderBoard({super.key});
 
   @override
   State<LeaderBoard> createState() => _LeaderBoard();

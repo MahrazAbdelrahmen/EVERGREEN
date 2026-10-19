@@ -1,13 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
+import 'package:sorttrash/composents/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:sorttrash/player_box.dart';
 import '../../../BackEnd/PlayerProgress/player.dart';
 
 class OnlineProfileDataContainer extends StatefulWidget {
-  const OnlineProfileDataContainer({Key? key, required this.playerProgress})
-      : super(key: key);
+  const OnlineProfileDataContainer({super.key, required this.playerProgress});
   final PlayerProgress playerProgress;
 
   @override
@@ -20,7 +19,7 @@ class _OnlineProfileDataContainer extends State<OnlineProfileDataContainer> {
   @override
   Widget build(BuildContext context) {
     final color =
-        Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withOpacity(1.0);
+        Color((math.Random().nextDouble() * 0xFFFFFF).toInt()).withValues(alpha: 1.0);
     return Center(
       child: Stack(
         children: [
@@ -53,7 +52,6 @@ class _OnlineProfileDataContainer extends State<OnlineProfileDataContainer> {
                           context: context,
                           builder: (BuildContext context) {
                             String childName = '';
-                            int? childAge;
                             return SingleChildScrollView(
                               child: AlertDialog(
                                 title: const Text('Enter Child Information',
@@ -66,23 +64,17 @@ class _OnlineProfileDataContainer extends State<OnlineProfileDataContainer> {
                                           labelText: 'Name'),
                                       onChanged: (value) => childName = value,
                                     ),
-                                    TextFormField(
-                                      decoration: const InputDecoration(
-                                          labelText: 'Age'),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (value) =>
-                                          childAge = int.tryParse(value) ?? 0,
-                                    ),
                                   ],
                                 ),
                                 actions: [
                                   ElevatedButton(
                                     onPressed: () {
+                                      if (childName.trim().isEmpty) return;
                                       setState(() {
                                         onlineProgress.setParent(
                                             onlineParentBox.get(user!.uid));
-                                        playerProgress.childsName =childName;
-                                        onlineProgress.setChild(playerProgress.childID, playerProgress);
+                                        widget.playerProgress.childsName = childName.trim();
+                                        onlineProgress.setChild(widget.playerProgress.childID, widget.playerProgress);
                                         onlineProgress
                                             .returnParent()
                                             .updateData(
@@ -181,7 +173,7 @@ class _OnlineProfileDataContainer extends State<OnlineProfileDataContainer> {
           onlineProgress.getUID(), onlineProgress.returnParent());
       onlineProgress.returnParent().updateData(onlineProgress.getUID());
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 }

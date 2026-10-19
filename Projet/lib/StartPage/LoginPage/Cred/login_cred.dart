@@ -28,7 +28,7 @@ class _EmailCredState extends State<EmailCred> {
         child: TextFormField(
           autocorrect: true,
           validator: (value) => value != null && !EmailValidator.validate(value)
-              ? 'This is not a valid email'
+              ? 'Adresse e-mail invalide'
               : null,
           keyboardType: TextInputType.emailAddress,
           maxLength: 50,
@@ -67,7 +67,7 @@ class _EmailCredState extends State<EmailCred> {
 }
 
 class PassCred extends StatelessWidget {
-  final controller;
+  final TextEditingController controller;
   final String hint;
   final bool obscureText;
 
@@ -85,7 +85,7 @@ class PassCred extends StatelessWidget {
         width: 0.32*MediaQuery.of(context).size.width,
         height: 0.18*MediaQuery.of(context).size.height,
         child: TextFormField(
-          validator: (value) => value == null || value.length < 3 ? 'Enter 10+ char password' : null ,
+          validator: (value) => value == null || value.length < 6 ? 'Au moins 6 caractères' : null ,
           maxLength: 50,
           controller: controller,
           obscureText: obscureText,

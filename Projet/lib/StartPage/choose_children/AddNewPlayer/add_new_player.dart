@@ -13,8 +13,7 @@ import '../../../defis/key_container.dart';
 
 class AddPlayer extends StatefulWidget {
 
-  const AddPlayer({Key? key})
-      : super(key: key);
+  const AddPlayer({super.key});
 
   @override
   State<AddPlayer> createState() => _AddPlayer();
@@ -192,7 +191,6 @@ class _AddPlayer extends State<AddPlayer> {
                              if (currentProfileIndex == 1){
                                offlineProgress.addElementProgress(
                                    childName, childAge, profileImage);
-                               print(offlineProgress.returnPlayers().length);
                                offlineGlobalPlayers =
                                    offlineProgress.returnPlayers();
                                parentBox.putAt(0, offlineProgress.returnParent());
@@ -215,7 +213,7 @@ class _AddPlayer extends State<AddPlayer> {
                                }
                              }
                            }on Exception catch (e) {
-                             print(e);
+                             debugPrint('$e');
                            }
                            Navigator.pushNamed(context, '/ChildSelector');
                          });

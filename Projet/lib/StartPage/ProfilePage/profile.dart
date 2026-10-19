@@ -10,7 +10,7 @@ import '../../BackEnd/PlayerProgress/player.dart';
 import 'no_player_page.dart';
 
 class ProfilePage extends StatelessWidget {
-  ProfilePage({Key? key}) : super(key: key);
+  ProfilePage({super.key});
   final User? user = FirebaseAuth.instance.currentUser;
   late final PlayerProgress playerProgress =
       currentProfileIndex == 1 && globalChildKey != -1
@@ -57,7 +57,12 @@ class ProfilePage extends StatelessWidget {
                             width: 0.25 * MediaQuery.of(context).size.width,
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                image: AssetImage('assets/profiles/0.png'),
+                                image: AssetImage(
+                                    playerProgress.avatarProfileName
+                                                ?.startsWith('assets/') ==
+                                            true
+                                        ? playerProgress.avatarProfileName!
+                                        : 'assets/profiles/0.png'),
                               ),
                               borderRadius: BorderRadius.circular(100),
                             )),
@@ -90,11 +95,18 @@ class ProfilePage extends StatelessWidget {
                                   decoration: TextDecoration.none),
                             )),
 
-                        user != null && onlineGlobalChildKey != -1?ElevatedButton(
+                        user != null ? ElevatedButton(
                             onPressed: () async {
-                              FirebaseAuth auth = FirebaseAuth.instance;
-                              await auth.signOut();
-                              Navigator.pushNamed(context, '/StartPage');},
+                              final navigator = Navigator.of(context);
+                              await FirebaseAuth.instance.signOut();
+                              onlineGlobalChildKey = -1;
+                              playersOnline = [];
+                              if (currentProfileIndex != 1) {
+                                currentProfileIndex = 1;
+                              }
+                              navigator.pushNamedAndRemoveUntil(
+                                  '/StartPage', (route) => false);
+                            },
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 side: const BorderSide(
@@ -144,23 +156,22 @@ class ProfilePage extends StatelessWidget {
                         color: Colors.purpleAccent,
                         backGroundColor: Color.fromRGBO(200, 162, 200, 0.5),
                         innerString:
-                            this.playerStatsUtil.calculateTotal().toString(),
+                            playerStatsUtil.calculateTotal().toString(),
                         text: "Jeux",
-                        percentage: this.playerStatsUtil.calculateTotal() / 25,
+                        percentage: playerStatsUtil.calculateTotal() / 25,
                       ),
                       SizedBox(
                         width: 0.04 * MediaQuery.of(context).size.height,
                       ),
                       ProgressBar(
-                        innerString: this
-                            .playerStatsUtil
+                        innerString: playerStatsUtil
                             .countNumberOfOnesInAString(3)
                             .toString(),
                         color: Colors.lightGreenAccent,
                         backGroundColor: Color.fromRGBO(255, 218, 185, 0.5),
                         text: "Défis",
                         percentage:
-                            this.playerStatsUtil.countNumberOfOnesInAString(3) /
+                            playerStatsUtil.countNumberOfOnesInAString(3) /
                                 24,
                       ),
                       SizedBox(
@@ -168,8 +179,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       ProgressBar(
                         color: Colors.cyanAccent,
-                        innerString: (this
-                                        .playerStatsUtil
+                        innerString: (playerStatsUtil
                                         .countNumberOfOnesInAString(3) /
                                     6 +
                                 1)
@@ -177,8 +187,7 @@ class ProfilePage extends StatelessWidget {
                             .toString(),
                         backGroundColor: Color.fromRGBO(230, 230, 250, 1),
                         text: "Histoires",
-                        percentage: (this
-                                            .playerStatsUtil
+                        percentage: (playerStatsUtil
                                             .countNumberOfOnesInAString(3) /
                                         6 +
                                     1)
@@ -196,13 +205,12 @@ class ProfilePage extends StatelessWidget {
 
 class ProgressBar extends StatelessWidget {
   const ProgressBar(
-      {Key? key,
+      {super.key,
       required this.text,
       required this.color,
       required this.percentage,
       required this.backGroundColor,
-      required this.innerString})
-      : super(key: key);
+      required this.innerString});
   final Color color;
   final String innerString;
   final Color backGroundColor;
@@ -215,11 +223,11 @@ class ProgressBar extends StatelessWidget {
         SizedBox(
           height: 0.25 * MediaQuery.of(context).size.height,
         ),
-        new CircularPercentIndicator(
+        CircularPercentIndicator(
           radius: 0.11 * MediaQuery.of(context).size.width,
           lineWidth: 8.0,
-          percent: percentage,
-          center: new Text(
+          percent: percentage.clamp(0.0, 1.0),
+          center: Text(
             innerString,
             style: TextStyle(
                 fontWeight: FontWeight.bold,

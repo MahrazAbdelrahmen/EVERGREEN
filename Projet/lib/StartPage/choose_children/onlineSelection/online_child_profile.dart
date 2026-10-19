@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
+import 'package:sorttrash/composents/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:sorttrash/player_box.dart';
 
@@ -12,7 +12,7 @@ import '../../../defis/key_container.dart';
 import 'online_data_profile_container.dart';
 
 class OnlineProfilesSelection extends StatefulWidget {
-  const OnlineProfilesSelection({Key? key}) : super(key: key);
+  const OnlineProfilesSelection({super.key});
 
   @override
   State<OnlineProfilesSelection> createState() => _OnlineProfilesSelection();

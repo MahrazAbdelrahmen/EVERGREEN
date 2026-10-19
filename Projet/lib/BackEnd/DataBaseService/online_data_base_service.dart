@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sorttrash/BackEnd/DataBaseService/local_data_base_service.dart';
 import 'package:sorttrash/player_box.dart';
 import 'package:uuid/uuid.dart';
@@ -69,7 +70,7 @@ class OnlineDataBaseService extends DataBaseService {
       setParentChildren(returnPlayers());
       onlineParentBox.put(_uid, returnParent());
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 
@@ -93,7 +94,7 @@ class OnlineDataBaseService extends DataBaseService {
       playerProgress =
           onlineProgress.returnParent().children[onlineGlobalChildKey];
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
     if (index < 0 ||
         index >= playerProgress.gamesData[levelNumber].levelsCompleted.length) {
@@ -113,7 +114,7 @@ class OnlineDataBaseService extends DataBaseService {
       playerProgress =
       onlineProgress.returnParent().children[onlineGlobalChildKey];
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
     if (index < 0 ||
         index >= playerProgress.gamesData[levelNumber].levelsCompleted.length || playerProgress.lastChallengeDate == null) {
@@ -128,7 +129,7 @@ class OnlineDataBaseService extends DataBaseService {
     }
     return true;
   }
-  setUID(String uid) {
+  void setUID(String uid) {
     _uid = uid;
   }
 
@@ -136,7 +137,7 @@ class OnlineDataBaseService extends DataBaseService {
     return _uid;
   }
 
-  appendDataAndSave(Parent parent) {
+  void appendDataAndSave(Parent parent) {
     try {
       int i = returnParent().children.length;
       int cpt = 0;
@@ -153,7 +154,7 @@ class OnlineDataBaseService extends DataBaseService {
       }
       setParentChildren(returnPlayers());
     } catch (e) {
-      print(e);
+      debugPrint('$e');
     }
   }
 }

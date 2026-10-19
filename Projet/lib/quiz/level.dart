@@ -41,6 +41,12 @@ class Level extends StatefulWidget {
 class _LevelState extends State<Level> {
   final User? user = FirebaseAuth.instance.currentUser;
   final _player = AudioPlayer();
+
+  @override
+  void dispose() {
+    _player.dispose();
+    super.dispose();
+  }
   
   bool isInitialized = false;
   late PlayerProgress playerProgress = currentProfileIndex == 1
@@ -57,11 +63,10 @@ class _LevelState extends State<Level> {
     widget.liste.shuffle(random);
   }
 
+  @override
   Widget build(BuildContext context) {
-    dynamic wid, wid2;
+    dynamic wid2;
     if (widget._currentIndex > 0) wid2 = widget.liste[widget._currentIndex - 1];
-    if (widget._currentIndex < widget.liste.length)
-      wid = widget.liste[widget._currentIndex];
     return Scaffold(
         body: Container(
       decoration: const BoxDecoration(
@@ -128,8 +133,8 @@ class _LevelState extends State<Level> {
                 RoundButton(
                   href: '/',
                   myIcon: Icons.settings,
-                  couleur: Color.fromRGBO(255, 210, 23, 5),
-                  shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                  couleur: Color.fromRGBO(255, 210, 23, 1),
+                  shadowColor: Color.fromRGBO(255, 210, 23, 1),
                 ),
                 SizedBox(
                   width: 20.0,
@@ -138,7 +143,7 @@ class _LevelState extends State<Level> {
             ),
           ],
         ),
-        Container(
+        SizedBox(
           height: 0.75 * MediaQuery.of(context).size.height,
           child: Stack(
             children: [
@@ -147,11 +152,11 @@ class _LevelState extends State<Level> {
                 width: 0.75 * MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(33.0),
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   boxShadow: [
                     BoxShadow(
                       color:
-                          const Color.fromARGB(255, 0, 0, 0).withOpacity(0.5),
+                          const Color.fromARGB(255, 0, 0, 0).withValues(alpha: 0.5),
                       offset: const Offset(0, 5),
                       blurRadius: 10,
                     ),
@@ -160,13 +165,13 @@ class _LevelState extends State<Level> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(
+                    SizedBox(
                       height: 0.4 * MediaQuery.of(context).size.height,
                       width: 0.15 * MediaQuery.of(context).size.width,
                       child:
                           Image(image: AssetImage("assets/images/logo2.png")),
                     ),
-                    Container(
+                    SizedBox(
                       height: 0.65 * MediaQuery.of(context).size.height,
                       width: 0.55 * MediaQuery.of(context).size.width,
                       child: InkWell(
@@ -225,9 +230,9 @@ class _LevelState extends State<Level> {
                           );
                           _player.stop();
                           setState(() {
-                            if (replay == true)
+                            if (replay == true) {
                               widget._currentIndex = 0;
-                            else {
+                            } else {
                               widget.isFirst = false;
                               widget._currentIndex += 1;
                             }
@@ -260,7 +265,7 @@ class _LevelState extends State<Level> {
                                   .updateData(onlineProgress.getUID());
                             }
                           } catch (e) {
-                            print(e);
+                            debugPrint('$e');
                           }
                           Navigator.pop(context);
                           Navigator.pushNamed(context, '/Nquiz');

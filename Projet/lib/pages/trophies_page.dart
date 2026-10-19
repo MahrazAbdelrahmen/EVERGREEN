@@ -1,4 +1,4 @@
-import 'package:floating_snackbar/floating_snackbar.dart';
+import 'package:sorttrash/composents/floating_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:sorttrash/button.dart';
 
@@ -6,7 +6,7 @@ import '../BackEnd/PlayerProgress/player.dart';
 import '../player_box.dart';
 
 class TrophiesPage extends StatefulWidget {
-  const TrophiesPage({Key? key}) : super(key: key);
+  const TrophiesPage({super.key});
 
   @override
   State<TrophiesPage> createState() => _TrophiesPage();
@@ -21,8 +21,8 @@ class _TrophiesPage extends State<TrophiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: WillPopScope(
-          onWillPop: () async => false,
+        body: PopScope(
+          canPop: false,
           child: SafeArea(
             child: SingleChildScrollView(
               child: Container(
@@ -169,7 +169,7 @@ class _TrophiesPage extends State<TrophiesPage> {
                             left: 560,
                             top: 5,
                             child: RoundButton(
-                              myIcon: Icons.exit_to_app, href: '/games' , couleur: Color.fromRGBO(255, 210, 23, 5), shadowColor: Colors.transparent,))
+                              myIcon: Icons.exit_to_app, href: '/games' , couleur: Color.fromRGBO(255, 210, 23, 1), shadowColor: Colors.transparent,))
                       ],
                     ),
                   ],

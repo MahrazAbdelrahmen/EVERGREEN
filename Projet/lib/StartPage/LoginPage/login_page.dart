@@ -6,7 +6,7 @@ import 'package:sorttrash/StartPage/LoginPage/Cred/login_resgister_buttons.dart'
 import 'package:sorttrash/button.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -27,14 +27,11 @@ class _LoginPageState extends State<LoginPage> {
   final User? user = FirebaseAuth.instance.currentUser;
   @override
   void initState() {
-    if (user != null) {
-      if (!user!.emailVerified) {
-        setState(() {
-          user!.delete();
-          FirebaseAuth.instance.signOut();
-        });
-      }
-      super.initState();
+    super.initState();
+    final user = this.user;
+    if (user != null && !user.emailVerified) {
+      user.delete();
+      FirebaseAuth.instance.signOut();
     }
   }
 
@@ -42,8 +39,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: WillPopScope(
-      onWillPop: () async => false,
+        body: PopScope(
+      canPop: false,
       child: SafeArea(
         child: Container(
           decoration: const BoxDecoration(
@@ -148,7 +145,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   ElevatedButton(
                                     onPressed: () async {
-                                      print(MediaQuery.of(context).size);
                                       _auth.error = false;
                                       if (_mykey.currentState!.validate()) {
                                         ScaffoldMessenger.of(context)
@@ -214,8 +210,8 @@ class _LoginPageState extends State<LoginPage> {
                         child: const RoundButton(
                           myIcon: Icons.exit_to_app,
                           href: '/StartPage',
-                          couleur: Color.fromRGBO(255, 210, 23, 5),
-                          shadowColor: Color.fromRGBO(255, 210, 23, 5),
+                          couleur: Color.fromRGBO(255, 210, 23, 1),
+                          shadowColor: Color.fromRGBO(255, 210, 23, 1),
                         ))
                   ],
                 ),

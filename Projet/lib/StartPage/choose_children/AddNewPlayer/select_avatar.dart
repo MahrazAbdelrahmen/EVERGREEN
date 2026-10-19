@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class ChooseAvatar extends StatefulWidget {
   const ChooseAvatar({
-    Key? key,
+    super.key,
     required this.updateAvatar
-  }) : super(key: key);
+  });
   final Function(String) updateAvatar ;
   @override
   State<ChooseAvatar> createState() => _ChooseAvatarState();

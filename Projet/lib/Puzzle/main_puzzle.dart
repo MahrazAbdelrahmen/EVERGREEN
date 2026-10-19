@@ -93,7 +93,6 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
   late PlayerProgress playerProgress = currentProfileIndex == 1
       ? offlineProgress.returnParent().children[globalChildKey]
       : onlineProgress.returnParent().children[onlineGlobalChildKey];
-  final _audio = AudioCache();
   late double screenHeight = MediaQuery.of(context).size.height;
   late double screenWidth = MediaQuery.of(context).size.width;
   int index = 0;
@@ -104,8 +103,6 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
   void initState() {
     globalMusicPlayerStartPage.stop();
     int i = 0;
-    _audio.load('music/correct.mp3');
-    _audio.load('music/wrong.mp3');
     setState(() {
       widget._copyOfarrayOfPuzzlePieces.shuffle();
       correctPiecesNumber = 0;
@@ -256,8 +253,9 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
           ),
         ],
       ),
-      onWillAccept: (data) => true,
-      onAccept: (data) {
+      onWillAcceptWithDetails: (data) => true,
+      onAcceptWithDetails: (details) {
+        final data = details.data;
         if (square.id == data.id) {
           setState(() {
             int i = 0;
@@ -299,7 +297,7 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
                       .updateData(onlineProgress.getUID());
                 }
               } catch (e) {
-                print(e);
+                debugPrint('$e');
               }
               while (i < widget._arrayOfSquares.length - 1) {
                 widget._arrayOfSquares[i].imageName = "assets/images/empty.png";
@@ -309,11 +307,9 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
             }
           });
           globalSoundPlayerStartPage.play(AssetSource('music/correct.mp3'));
-          globalSoundPlayerStartPage.stop();
         } else {
           time = time - 5;
           globalSoundPlayerStartPage.play(AssetSource('music/wrong.mp3'));
-          globalSoundPlayerStartPage.stop();
         }
       },
     );
@@ -344,7 +340,7 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
                       margin: const EdgeInsets.only(left: 10, right: 10),
                       child: DraggablePiece(trash: trash),
                     ))
-                .toList(),
+                ,
           ]),
         ),
       ),
@@ -355,9 +351,9 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
 class DraggablePiece extends StatelessWidget {
   final Piece trash;
   const DraggablePiece({
-    Key? key,
+    super.key,
     required this.trash,
-  }) : super(key: key);
+  });
   static double size = 50;
   @override
   Widget build(BuildContext context) => Draggable<Piece>(

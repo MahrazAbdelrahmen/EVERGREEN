@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'player.g.dart';
 
@@ -35,7 +36,9 @@ class PlayerProgress {
       json['childsName'] as String?,
       json['childGlobalUID'] as String?,
       json['avatarProfileName'] as String?,
-      DateTime.parse(json['lastChallengeDate'] as String),
+      json['lastChallengeDate'] == null
+          ? null
+          : DateTime.parse(json['lastChallengeDate'] as String),
     );
   }
   Map<String, dynamic> toJson() {
@@ -102,23 +105,25 @@ class Parent {
         .toList();
     return Parent(children, json['childrenNumber'], json['parentUUID']);
   }
-  createData( String uid) {
+  void createData( String uid) {
     final CollectionReference parentCollection =
         FirebaseFirestore.instance.collection('parent');
     final json = {
-      "children": children.toList().map((e) => e.toJson()),
+      "children": children.map((e) => e.toJson()).toList(),
       "childrenNumber": numberOfChildren,
       "parentUUID": parentUUID
     };
     parentCollection.doc(uid).set(json);
   }
-  Future fetchParentData(String uuid) async {
+  Future<Parent?> fetchParentData(String uuid) async {
     try{
       DocumentSnapshot snapshot =
       await FirebaseFirestore.instance.collection('parent').doc(uuid).get();
-      return Parent.fromJson(snapshot.data() as Map<String, dynamic>);
+      final data = snapshot.data() as Map<String, dynamic>?;
+      return data == null ? null : Parent.fromJson(data);
     } catch (e) {
-      print(e);
+      debugPrint('fetchParentData failed: $e');
+      return null;
     }
   }
   Stream<List<Parent>> readParents() => FirebaseFirestore.instance.collection('parent').snapshots().map((event) => event.docs.map((e) => Parent.fromJson(e.data())).toList());
@@ -127,13 +132,13 @@ class Parent {
      final CollectionReference parentCollection =
      FirebaseFirestore.instance.collection('parent');
      final json = {
-       "children": children.toList().map((e) => e.toJson()),
+       "children": children.map((e) => e.toJson()).toList(),
        "childrenNumber": numberOfChildren,
        "parentUUID": parentUUID
      };
      parentCollection.doc(dataId).update(json);
    } catch (e){
-     print(e);
+     debugPrint('$e');
    }
   }
 

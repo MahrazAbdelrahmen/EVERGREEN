@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:hive_ce/hive.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:sorttrash/BackEnd/DataBaseService/local_data_base_service.dart';
 import 'package:sorttrash/BackEnd/DataBaseService/online_data_base_service.dart';
 import 'package:uuid/uuid.dart';
@@ -26,7 +26,8 @@ PlayerProgress playerProgress = NewPlayerUtil.returnNewPlayer();
 OnlineDataBaseService onlineProgress = OnlineDataBaseService(playersOnline, onlineParent, decoyUID);
 String decoyUID = '';
 PlayerProgress globalChildSelector = NewPlayerUtil.returnNewPlayer();
-double globalVolumeMusicSettings = 1;
+double globalVolumeMusicSettings = 0.5;
+double globalVolumeSoundSettings = 1;
 AssetImage backgroundImage2 =  const AssetImage('assets/images/bg-image2.png');
 bool isLoggedInGlobalKey = false;
 Future<void> getProgress() async {
@@ -36,7 +37,7 @@ Future<void> getProgress() async {
     return;
   }
 
-  final hasConnection = await InternetConnectionChecker().hasConnection;
+  final hasConnection = await InternetConnection().hasInternetAccess;
 
   if (hasConnection) {
     final parent = await onlineParent.fetchParentData(user.uid);
