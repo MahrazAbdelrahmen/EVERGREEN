@@ -1,59 +1,28 @@
 import 'package:flutter/material.dart';
 
-class RoundButton extends StatefulWidget {
+import 'composents/ui/app_button.dart';
+
+class RoundButton extends StatelessWidget {
   final String? href; //pour indiquer le chemin à prendre en cliquant sur l'icon
   final IconData myIcon;
   final Color couleur;
   final Color shadowColor;
+
+  /// When false the screen opens on top of the current one, so Back returns here.
+  final bool replace;
   const RoundButton(
-      {super.key, required this.href, required this.myIcon, required this.couleur, required this.shadowColor});
+      {super.key, required this.href, required this.myIcon, required this.couleur, required this.shadowColor, this.replace = true});
 
-  @override
-  State<RoundButton> createState() => _RoundButtonState();
-}
-
-class _RoundButtonState extends State<RoundButton> {
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () async {
-
-       if (widget.href != '-'){
-         await Navigator.popAndPushNamed(context, '${widget.href}');
-       }
-      },
-      child: Container(
-        height: 40.0,
-        width: 40.0,
-        decoration: BoxDecoration(
-          boxShadow:  [
-            BoxShadow(
-              color: widget.shadowColor,
-              spreadRadius: 0,
-              blurRadius: 0,
-              offset: const Offset(0, 4.2), // changes position of shadow
-            ),
-          ],
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(100),
-        ),
-        child: Center(
-          child: Container(
-            height: 35.0,
-            width: 35.0,
-            decoration: BoxDecoration(
-              color: widget.couleur,
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Center(
-              child: Icon(
-                widget.myIcon,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
+    return RoundIconButton(
+      icon: myIcon,
+      color: couleur,
+      onTap: href == '-'
+          ? null
+          : () => replace
+              ? Navigator.popAndPushNamed(context, '$href')
+              : Navigator.pushNamed(context, '$href'),
     );
   }
 }

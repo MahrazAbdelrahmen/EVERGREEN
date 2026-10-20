@@ -1,18 +1,26 @@
+import 'package:sorttrash/composents/app_audio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../BackEnd/PlayerProgress/player.dart';
 import '../StartPage/settings.dart';
+import '../composents/app_theme.dart';
+import '../composents/navigation.dart';
+import '../composents/ui/app_button.dart';
+import '../pages/bravo_widget.dart';
 import '../player_box.dart';
+import 'quiz_ui.dart';
 import 'quizphotos.dart';
 import 'package:sorttrash/quiz/quizmultiples.dart';
 import 'package:sorttrash/quiz/quizgestes.dart';
-import 'package:sorttrash/button.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:math';
 
+/// A quiz level: a hub screen that introduces the level, shows the
+/// explanation after each answer, and opens the questions one by one.
 class Level extends StatefulWidget {
   late Function(bool) _changeBooleanStatus;
   List<Widget> liste;
+  final int levelIndex;
   int _currentIndex = 0;
   bool isFirst = false;
   Level({
@@ -20,6 +28,7 @@ class Level extends StatefulWidget {
     required Function(bool) changeBooleanStatus,
     required bool isLocked,
     required this.liste,
+    required this.levelIndex,
   }) {
     _changeBooleanStatus = changeBooleanStatus;
     _isLocked = isLocked;
@@ -39,288 +48,215 @@ class Level extends StatefulWidget {
 }
 
 class _LevelState extends State<Level> {
+  static const _pointsPerCorrectAnswer = 10;
+
   final User? user = FirebaseAuth.instance.currentUser;
-  final _player = AudioPlayer();
+  final _player = AppAudio.create();
+  late PlayerProgress playerProgress = currentProfileIndex == 1
+      ? offlineProgress.returnParent().children[globalChildKey]
+      : onlineProgress.returnParent().children[onlineGlobalChildKey];
+
+  @override
+  void initState() {
+    super.initState();
+    globalMusicPlayerStartPage.stop();
+    _restart();
+  }
 
   @override
   void dispose() {
     _player.dispose();
     super.dispose();
   }
-  
-  bool isInitialized = false;
-  late PlayerProgress playerProgress = currentProfileIndex == 1
-      ? offlineProgress.returnParent().children[globalChildKey]
-      : onlineProgress.returnParent().children[onlineGlobalChildKey];
-  @override
-  void initState() {
-    globalMusicPlayerStartPage.stop();
-    super.initState();
+
+  void _restart() {
     widget._currentIndex = 0;
-    if (widget._currentIndex == widget.liste.length) widget._currentIndex = 0;
-    if (widget._currentIndex != 0) widget.isFirst = true;
-    final random = Random();
-    widget.liste.shuffle(random);
+    widget.isFirst = false;
+    widget.liste.shuffle(Random());
+    QuizProgress.startLevel(widget.liste.length);
+  }
+
+  bool get _finished => widget._currentIndex >= widget.liste.length;
+
+  EXPLICATION? get _lastExplanation {
+    if (widget._currentIndex == 0) return null;
+    final previous = widget.liste[widget._currentIndex - 1];
+    return switch (previous) {
+      QuizMultiples q => q.explication,
+      QuizGestes q => q.explication,
+      QuizPhotosDesign q => q.quizPhotos.explication,
+      _ => null,
+    };
+  }
+
+  void _playExplanation() {
+    final explanation = _lastExplanation;
+    if (explanation == null) return;
+    _player.stop();
+    _player.play(AssetSource(explanation.SoundPath), volume: globalVolumeSoundSettings);
+  }
+
+  Future<void> _openNextQuestion() async {
+    _player.stop();
+    QuizProgress.question = widget._currentIndex + 1;
+    final replay = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => widget.liste[widget._currentIndex]),
+    );
+    if (!mounted) return;
+    setState(() {
+      if (replay == true) {
+        _restart();
+      } else {
+        widget._currentIndex += 1;
+      }
+    });
+    if (replay != true) _playExplanation();
+  }
+
+  void _finishLevel() {
+    final points = QuizProgress.correct * _pointsPerCorrectAnswer;
+    playerProgress.score += points;
+    final progress = playerProgress.gamesData[2].levelsCompleted.split('');
+    if (widget.levelIndex + 1 < progress.length) {
+      progress[widget.levelIndex + 1] = '1';
+      playerProgress.gamesData[2].levelsCompleted = progress.join();
+    }
+    widget._changeBooleanStatus(false);
+    try {
+      if (currentProfileIndex == 1) {
+        offlineProgress.setChild(globalChildKey, playerProgress);
+        if (parentBox.isEmpty) {
+          parentBox.add(offlineProgress.returnParent());
+        } else {
+          parentBox.putAt(0, offlineProgress.returnParent());
+        }
+      } else {
+        onlineProgress.setChild(onlineGlobalChildKey, playerProgress);
+        onlineParentBox.put(user!.uid, onlineProgress.returnParent());
+        onlineProgress.returnParent().updateData(onlineProgress.getUID());
+      }
+    } catch (e) {
+      debugPrint('$e');
+    }
+    final ratio = QuizProgress.total == 0 ? 0 : QuizProgress.correct / QuizProgress.total;
+    final stars = ratio >= 0.9 ? 3 : (ratio >= 0.6 ? 2 : 1);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => BravoPage(score: points, stars: stars)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    dynamic wid2;
-    if (widget._currentIndex > 0) wid2 = widget.liste[widget._currentIndex - 1];
+    final explanation = _lastExplanation;
+    final String message;
+    final String buttonLabel;
+    if (widget._currentIndex == 0) {
+      message = "Prépare-toi pour ce niveau !\n${widget.liste.length} questions t'attendent.";
+      buttonLabel = 'Commencer';
+    } else {
+      message = explanation?.text ?? "Prêt pour la suite ?";
+      buttonLabel = _finished ? 'Terminer' : 'Question suivante';
+    }
+
     return Scaffold(
-        body: Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("assets/images/bg-image3.png"),
-          fit: BoxFit.cover,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(image: AssetImage("assets/images/bg-image3.png"), fit: BoxFit.cover),
         ),
-      ),
-      child:
-          Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const SizedBox(
-                  width: 20.0,
-                ),
-                InkWell(
-                  onTap: () async {
-                    setState(() {
-                      widget._currentIndex = widget._currentIndex - 1;
-                      widget.isFirst = false;
-                    });
-                    await Navigator.popAndPushNamed(context, '/Nquiz');
-                  },
-                  child: Container(
-                    height: 40.0,
-                    width: 40.0,
-                    decoration: BoxDecoration(
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color.fromARGB(255, 102, 235, 0),
-                          spreadRadius: 0,
-                          blurRadius: 0,
-                          offset: Offset(0, 4.2), // changes position of shadow
-                        ),
-                      ],
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Center(
-                      child: Container(
-                        height: 35.0,
-                        width: 35.0,
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 102, 235, 0),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: const [
-                RoundButton(
-                  href: '/',
-                  myIcon: Icons.settings,
-                  couleur: Color.fromRGBO(255, 210, 23, 1),
-                  shadowColor: Color.fromRGBO(255, 210, 23, 1),
-                ),
-                SizedBox(
-                  width: 20.0,
-                ),
-              ],
-            ),
-          ],
-        ),
-        SizedBox(
-          height: 0.75 * MediaQuery.of(context).size.height,
-          child: Stack(
+        child: SafeArea(
+          child: Column(
             children: [
-              Container(
-                height: 0.7 * MediaQuery.of(context).size.height,
-                width: 0.75 * MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(33.0),
-                  color: Colors.white.withValues(alpha: 0.8),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          const Color.fromARGB(255, 0, 0, 0).withValues(alpha: 0.5),
-                      offset: const Offset(0, 5),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    SizedBox(
-                      height: 0.4 * MediaQuery.of(context).size.height,
-                      width: 0.15 * MediaQuery.of(context).size.width,
-                      child:
-                          Image(image: AssetImage("assets/images/logo2.png")),
+                    RoundIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      color: AppColors.green,
+                      tooltip: 'Niveaux',
+                      onTap: () => backToRoute(context, '/Nquiz'),
                     ),
-                    SizedBox(
-                      height: 0.65 * MediaQuery.of(context).size.height,
-                      width: 0.55 * MediaQuery.of(context).size.width,
-                      child: InkWell(
-                        onTap: () {
-                          if (wid2 is QuizMultiples) {
-                            _player
-                                .play(AssetSource(wid2.explication.SoundPath));
-                          }
-                          if (wid2 is QuizGestes) {
-                            _player
-                                .play(AssetSource(wid2.explication.SoundPath));
-                          }
-                          if (wid2 is QuizPhotosDesign) {
-                            _player.play(AssetSource(
-                                wid2.quizPhotos.explication.SoundPath));
-                          }
-                          _player.stop();
-                        },
-                        child: Center(
-                          child: Text(
-                            (widget._currentIndex == 0)
-                                ? "Preparez vous pour ce niveau"
-                                : (widget.isFirst == true)
-                                    ? ("Soyez pret pour continuer")
-                                    : (wid2 is QuizMultiples)
-                                        ? wid2.explication.text
-                                        : (wid2 is QuizPhotosDesign)
-                                            ? wid2.quizPhotos.explication.text
-                                            : (wid2 is QuizGestes)
-                                                ? wid2.explication.text
-                                                : "",
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 18.0,
-                              color: Colors.black,
-                              fontFamily: "Digitalt",
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(child: QuizProgressBar()),
+                    const SizedBox(width: 60),
                   ],
                 ),
               ),
-              Positioned(
-                top: 0.65 * MediaQuery.of(context).size.height,
-                left: 0.31 * MediaQuery.of(context).size.width,
-                child: InkWell(
-                  onTap: widget._currentIndex < widget.liste.length
-                      ? () async {
-                          final replay = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    widget.liste[widget._currentIndex]),
-                          );
-                          _player.stop();
-                          setState(() {
-                            if (replay == true) {
-                              widget._currentIndex = 0;
-                            } else {
-                              widget.isFirst = false;
-                              widget._currentIndex += 1;
-                            }
-                          });
-                        }
-                      : (() {
-                          widget._changeBooleanStatus(false);
-                          String newLevelsCompleted = playerProgress
-                              .gamesData[2].levelsCompleted
-                              .replaceFirst('0', '1');
-                          playerProgress.gamesData[2].levelsCompleted =
-                              newLevelsCompleted;
-                          try {
-                            if (currentProfileIndex == 1) {
-                              offlineProgress.setChild(
-                                  globalChildKey, playerProgress);
-                              if (parentBox.isEmpty) {
-                                parentBox.add(offlineProgress);
-                              } else {
-                                parentBox.putAt(
-                                    0, offlineProgress.returnParent());
-                              }
-                            } else {
-                              onlineProgress.setChild(
-                                  onlineGlobalChildKey, playerProgress);
-                              onlineParentBox.put(
-                                  user!.uid, onlineProgress.returnParent());
-                              onlineProgress
-                                  .returnParent()
-                                  .updateData(onlineProgress.getUID());
-                            }
-                          } catch (e) {
-                            debugPrint('$e');
-                          }
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, '/Nquiz');
-                        }),
-                  child: Stack(
-                    children: [
-                      Container(
-                        //le grand container vert
-                        height: 35.0,
-                        width: 86.0,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12.0),
-                          color: const Color.fromARGB(
-                              255, 145, 245, 64), //secondaire
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 2.0,
-                        left: 2.0,
-                        child: Container(
-                          height: 28.0,
-                          width: 82.0,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(6.0),
-                            color: const Color.fromARGB(
-                                255, 102, 235, 0), //principal
-                          ),
-                          child: const Center(
-                            child: Padding(
-                              padding: EdgeInsets.fromLTRB(0.0, 3.0, 0.0, 0.0),
-                              child: Text(
-                                "OK",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13.0,
-                                  fontWeight: FontWeight.w900,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(80, 12, 80, 12),
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.white.withValues(alpha: 0.88),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black38, offset: Offset(0, 5), blurRadius: 10),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Image.asset("assets/images/logo2.png", width: 110),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              if (explanation != null)
+                                const Text(
+                                  'Le savais-tu ?',
+                                  style: TextStyle(
+                                    fontFamily: 'Digital',
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: quizPink,
+                                  ),
+                                ),
+                              Expanded(
+                                child: Center(
+                                  child: SingleChildScrollView(
+                                    child: Text(
+                                      message,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontSize: 17, color: Colors.black87),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (explanation != null) ...[
+                                    RoundIconButton(
+                                      icon: Icons.volume_up_rounded,
+                                      color: AppColors.darkBeige,
+                                      tooltip: 'Écouter',
+                                      onTap: _playExplanation,
+                                    ),
+                                    const SizedBox(width: 16),
+                                  ],
+                                  AppButton(
+                                    label: buttonLabel,
+                                    icon: _finished ? Icons.flag_rounded : Icons.play_arrow_rounded,
+                                    color: AppColors.green,
+                                    onTap: _finished ? _finishLevel : _openNextQuestion,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox()
-      ]),
-    ));
+      ),
+    );
   }
 }

@@ -2,6 +2,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sorttrash/StartPage/settings.dart';
+import 'package:sorttrash/composents/app_theme.dart';
+import 'package:sorttrash/composents/brand.dart';
 import 'package:sorttrash/StartPage/start_page_button.dart';
 import 'package:sorttrash/player_box.dart';
 
@@ -52,59 +54,52 @@ class _StartPageState extends State<StartPage> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.sizeOf(context).height;
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/bg-image.png'),
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg-image.png'),
+            fit: BoxFit.cover,
           ),
+        ),
+        child: SafeArea(
           child: Center(
-            child: Container(
-              width: 400,
-              height: 300,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.transparent,
-              ),
+            child: SingleChildScrollView(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(
-                    height: 20,
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.8, end: 1),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.elasticOut,
+                    builder: (context, scale, child) =>
+                        Transform.scale(scale: scale, child: child),
+                    child: EvergreenWordmark(height: 0.4 * height),
                   ),
-                  Container(
-                    height: 150,
-                    width: 250,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/logo.png'),
-                        fit: BoxFit.fill,
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const AnonButton(
+                        text: 'Jouer',
+                        icon: Icons.play_arrow_rounded,
+                        href: '/ChildSelector',
+                        color: AppColors.green,
                       ),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Padding(
-
-                    padding: const EdgeInsets.only(left: 65.0),
-                    child: Center(
-                      child: Row(
-                        children: [
-                          const AnonButton(
-                            text: 'Jouer',
-                            href: '/ChildSelector',
-                            color: Color.fromRGBO(255, 210, 23, 1),
-                          ),
-                          const SizedBox(width: 20,),
-                          isSignedIn
-                              ? AnonButton(href: '/ProfilePage' , color: Color.fromRGBO(255, 210, 23, 1),text: 'Profile',)
-                              : AnonButton(href: '/LoginPage' , color: Color.fromRGBO(255, 210, 23, 1),text: 'Connecter',),
-                        ],
-                      ),
-                    ),
+                      const SizedBox(width: 20),
+                      isSignedIn
+                          ? const AnonButton(
+                              href: '/ProfilePage',
+                              icon: Icons.person_rounded,
+                              color: AppColors.darkBeige,
+                              text: 'Profil')
+                          : const AnonButton(
+                              href: '/LoginPage',
+                              icon: Icons.login_rounded,
+                              color: AppColors.darkBeige,
+                              text: 'Se connecter'),
+                    ],
                   ),
                 ],
               ),
@@ -115,4 +110,3 @@ class _StartPageState extends State<StartPage> {
     );
   }
 }
-

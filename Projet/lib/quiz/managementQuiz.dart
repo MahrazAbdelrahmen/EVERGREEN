@@ -9,6 +9,7 @@ class Management { //la classe pour faire la gestion de niveau de quiz
   DataBaseService dataBaseService =
       currentProfileIndex == 1 ? offlineProgress : onlineProgress;
   late Level level1 = Level(
+    levelIndex: 0,
     changeBooleanStatus: level2.setIsLocked,
     isLocked: dataBaseService.returnLockedState(0, 2),
     liste: [
@@ -163,6 +164,7 @@ class Management { //la classe pour faire la gestion de niveau de quiz
     ],
   );
   late Level level2 = Level(
+    levelIndex: 1,
     changeBooleanStatus: level3.setIsLocked,
     isLocked: dataBaseService.returnLockedState(1, 2),
     liste: [
@@ -327,6 +329,7 @@ class Management { //la classe pour faire la gestion de niveau de quiz
     ],
   );
   late Level level3 = Level(
+    levelIndex: 2,
     changeBooleanStatus: level4.setIsLocked,
     isLocked: dataBaseService.returnLockedState(2, 2),
     liste: [
@@ -499,8 +502,9 @@ class Management { //la classe pour faire la gestion de niveau de quiz
     ],
   );
   late Level level4 = Level(
+    levelIndex: 3,
     changeBooleanStatus: level5.setIsLocked,
-    isLocked: dataBaseService.returnLockedState(3, 3),
+    isLocked: dataBaseService.returnLockedState(3, 2),
     liste: [
       QuizMultiples(
           question:
@@ -677,8 +681,9 @@ class Management { //la classe pour faire la gestion de niveau de quiz
     ],
   );
   late Level level5 = Level(
+    levelIndex: 4,
     changeBooleanStatus: decoyMethod,
-    isLocked: dataBaseService.returnLockedState(4, 3),
+    isLocked: dataBaseService.returnLockedState(4, 2),
     liste: [
       QuizMultiples(
           question:

@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:confetti/confetti.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sorttrash/Puzzle/Models/Objects.dart';
 import 'package:sorttrash/Puzzle/Models/TrashCans.dart';
 import 'package:sorttrash/Puzzle/Models/puzzle_management.dart';
@@ -12,8 +13,13 @@ import 'package:sorttrash/pages/bravo_widget.dart';
 
 import '../BackEnd/PlayerProgress/player.dart';
 import '../StartPage/settings.dart';
+import '../composents/app_theme.dart';
+import '../composents/ui/app_button.dart';
+import '../composents/ui/drop_feedback.dart';
+import '../composents/ui/game_hud.dart';
+import '../composents/ui/pressable.dart';
 import '../player_box.dart';
-import 'Models/timer.dart';
+import 'jigsaw.dart';
 
 class PuzzleLevel extends StatefulWidget {
   late Function(bool) _changeBooleanStatus;
@@ -64,69 +70,33 @@ class PuzzleLevel extends StatefulWidget {
 }
 
 class _PuzzleLevelState extends State<PuzzleLevel> {
-  bool stopTimerBool = false;
-  void stopTimer(){
-    setState(() {
-      stopTimerBool = true;
-    });
-  }
-  void resumeTimer(){
-    setState(() {
-      stopTimerBool = false;
-    });
-  }
-  void replay() {
-    setState(() {
-      int i = 0;
-      time = widget._timeCount;
-      widget._copyOfarrayOfPuzzlePieces.shuffle();
-      correctPiecesNumber = 0;
-      widget._arrayOfPuzzlePieces = widget._copyOfarrayOfPuzzlePieces.toList();
-      while (i < widget._arrayOfSquares.length - 1) {
-        widget._arrayOfSquares[i].imageName = "assets/images/empty.png";
-        i++;
-      }
-    });
-  }
+  static const _emptySquare = "assets/images/empty.png";
+  static const _boardPadding = 6.0;
+
   final User? user = FirebaseAuth.instance.currentUser;
-  final ConfettiController _controller = ConfettiController();
   late PlayerProgress playerProgress = currentProfileIndex == 1
       ? offlineProgress.returnParent().children[globalChildKey]
       : onlineProgress.returnParent().children[onlineGlobalChildKey];
-  late double screenHeight = MediaQuery.of(context).size.height;
-  late double screenWidth = MediaQuery.of(context).size.width;
-  int index = 0;
+
   late Timer timer;
   late int time = widget._timeCount;
-  late int correctPiecesNumber = 0;
+  int correctPiecesNumber = 0;
+  bool stopTimerBool = false;
+  bool _finished = false;
+  bool _revealing = false;
+  int _scatterSeed = 0;
+  late JigsawCut _cut;
+  final Map<int, DropResult> _squareResult = {};
+  final Map<int, int> _squareTick = {};
+
+  int get _totalPieces => widget._matrixSize * widget._matrixSize;
+
   @override
   void initState() {
-    globalMusicPlayerStartPage.stop();
-    int i = 0;
-    setState(() {
-      widget._copyOfarrayOfPuzzlePieces.shuffle();
-      correctPiecesNumber = 0;
-      widget._arrayOfPuzzlePieces = widget._copyOfarrayOfPuzzlePieces.toList();
-    });
-    while (i < widget._arrayOfSquares.length - 1) {
-      widget._arrayOfSquares[i].imageName = "assets/images/empty.png";
-      i++;
-    }
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (time <= 0) {
-          time = 0;
-          if ( correctPiecesNumber != widget._matrixSize*widget._matrixSize){
-            Navigator.pop(context);
-          }
-        } else {
-          if (!stopTimerBool){
-            time--;
-          }
-        }
-      });
-    });
     super.initState();
+    globalMusicPlayerStartPage.stop();
+    _resetBoard();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
   @override
@@ -135,249 +105,471 @@ class _PuzzleLevelState extends State<PuzzleLevel> {
     super.dispose();
   }
 
+  void _resetBoard() {
+    time = widget._timeCount;
+    correctPiecesNumber = 0;
+    _finished = false;
+    _revealing = false;
+    _scatterSeed = math.Random().nextInt(1 << 30);
+    _cut = JigsawCut(widget._matrixSize, _scatterSeed);
+    _squareResult.clear();
+    widget._copyOfarrayOfPuzzlePieces.shuffle();
+    widget._arrayOfPuzzlePieces = widget._copyOfarrayOfPuzzlePieces.toList();
+    for (final square in widget._arrayOfSquares) {
+      square.imageName = _emptySquare;
+    }
+  }
+
+  void _tick() {
+    if (stopTimerBool || _finished) return;
+    setState(() => time = time > 0 ? time - 1 : 0);
+    if (time == 0) _timeUp();
+  }
+
+  void stopTimer() => setState(() => stopTimerBool = true);
+
+  void resumeTimer() => setState(() => stopTimerBool = false);
+
+  void replay() => setState(_resetBoard);
+
+  void _timeUp() {
+    stopTimerBool = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        child: Dialog(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Icon(Icons.timer_off_rounded, size: 56, color: Colors.redAccent),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Temps écoulé !',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontFamily: 'Digital', fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  AppButton(
+                    label: 'Rejouer',
+                    icon: Icons.replay_rounded,
+                    color: AppColors.lightBlue,
+                    expand: true,
+                    onTap: () {
+                      Navigator.pop(dialogContext);
+                      setState(() {
+                        _resetBoard();
+                        stopTimerBool = false;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  AppButton(
+                    label: 'Quitter',
+                    icon: Icons.logout_rounded,
+                    color: Colors.redAccent,
+                    expand: true,
+                    onTap: () {
+                      Navigator.pop(dialogContext);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Center(
-            child: ConfettiWidget(
-              confettiController: _controller,
-              blastDirection: 3.14 / 2,
-              maxBlastForce: 5,
-              minBlastForce: 1,
-              emissionFrequency: 0.03,
-              numberOfParticles: 10,
-              shouldLoop: true,
-              gravity: 0,
-            ),
-          ),
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage('assets/images/bg-image.png'),
-                  fit: BoxFit.fill),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                const SizedBox(
-                  height: 5,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('assets/images/bg-image.png'), fit: BoxFit.fill),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              GameHud(
+                done: correctPiecesNumber,
+                total: _totalPieces,
+                score: correctPiecesNumber * 10,
+                secondsLeft: time,
+                trailing: GamesSettings(
+                  functionToBeUsed: replay,
+                  functionToResumeTimer: resumeTimer,
+                  functionToStopTimer: stopTimer,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    GameTimer(
-                      time: time,
-                    ),
-                    GamesSettings(functionToBeUsed: replay, functionToResumeTimer: resumeTimer, functionToStopTimer: stopTimer,),
-                    SizedBox(
-                      width: 0.013888 * screenWidth,
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Center(
-                        child: AspectRatio(
-                          aspectRatio: 1,
-                          child: GridView.count(
-                            crossAxisCount: widget._matrixSize,
-                            children: [
-                              for (int i = 0;
-                                  i < widget._matrixSize * widget._matrixSize;
-                                  i++)
-                                Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.indigo[100],
-                                      borderRadius: BorderRadius.circular(5),
-                                      border: Border.all(
-                                          width: 2, color: Colors.white)),
-                                  child: Center(
-                                    child: showSquare(
-                                      context,
-                                      square: widget._arrayOfSquares[i],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Container(
-                        height: 250,
-                        width: 250,
-                        decoration: BoxDecoration(
-                            image: DecorationImage(
-                          image: AssetImage(widget._imageName),
-                          fit: BoxFit.fill,
-                        )),
-                      )
-                    ],
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => _playArea(constraints.biggest),
                   ),
                 ),
-                const SizedBox(
-                  height: 20,
-                ),
-                buildDragInterface(),
-                const SizedBox(
-                  height: 20,
-                ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The board in the middle, the model pinned top-left, and the remaining
+  /// pieces scattered around like a jigsaw spread out on a table.
+  Widget _playArea(Size area) {
+    final board = math.min(area.height, area.width * 0.42);
+    final boardRect = Rect.fromLTWH((area.width - board) / 2, (area.height - board) / 2, board, board);
+    final polaroidWidth = math.min(120.0, (boardRect.left - 16) * 0.55);
+    final polaroidRect = Rect.fromLTWH(0, 0, polaroidWidth + 12, polaroidWidth * 1.2 + 12);
+    // The board's picture area is inset by the frame's padding.
+    final boardCell = (board - 2 * _boardPadding) / widget._matrixSize;
+    final scatter = _scatterPieces(area, boardRect, polaroidRect, boardCell);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fromRect(rect: boardRect, child: _board()),
+        Positioned(left: 4, top: 4, child: _polaroid(polaroidWidth)),
+        for (final piece in widget._arrayOfPuzzlePieces)
+          if (scatter.spots[piece] case final spot?)
+            Positioned(
+              left: spot.dx,
+              top: spot.dy,
+              child: DraggablePiece(
+                key: ObjectKey(piece),
+                trash: piece,
+                image: widget._imageName,
+                cut: _cut,
+                cell: scatter.size,
+                dragCell: boardCell,
+                angle: scatter.angles[piece] ?? 0,
+              ),
             ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
-  Widget showSquare(
-    BuildContext context, {
-    required Square square,
-  }) {
-    return DragTarget<Piece>(
-      builder: (context, candidateData, rejectedData) => Stack(
-        children: [
-          Center(
-            child: Container(
-                decoration: BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage(square.imageName), fit: BoxFit.fill),
-              color: Colors.transparent,
-            )),
-          ),
-        ],
-      ),
-      onWillAcceptWithDetails: (data) => true,
-      onAcceptWithDetails: (details) {
-        final data = details.data;
-        if (square.id == data.id) {
-          setState(() {
-            int i = 0;
-            correctPiecesNumber++;
-            square.imageName = data.imageName;
-            widget._arrayOfPuzzlePieces
-                .removeWhere((trash) => trash.id == data.id);
-            if (correctPiecesNumber ==
-                widget._matrixSize * widget._matrixSize) {
-              widget._arrayOfPuzzlePieces =
-                  widget._copyOfarrayOfPuzzlePieces.toList();
-              widget.setIsFinished(true);
-              widget._changeBooleanStatus(false);
-              playerProgress.score += 100;
-              setState(() {
-                playerProgress.score += ((widget._copyOfarrayOfPuzzlePieces.length / widget._timeCount) * 1000).toInt();
-                if (puzzleNumber <
-                    playerProgress.gamesData[0].levelsCompleted.length) {
-                  List<String> characters =
-                      playerProgress.gamesData[0].levelsCompleted.split('');
-                  characters[puzzleNumber] = '1';
-                  playerProgress.gamesData[0].levelsCompleted =
-                      characters.join('');
-                }
-              });
-              try {
-                if (currentProfileIndex == 1) {
-                  offlineProgress.setChild(globalChildKey, playerProgress);
-                  if (parentBox.isEmpty) {
-                    parentBox.add(offlineProgress);
-                  } else {
-                    parentBox.putAt(0, offlineProgress.returnParent());
-                  }
-                } else {
-                  onlineProgress.setChild(onlineGlobalChildKey, playerProgress);
-                  onlineParentBox.put(user!.uid, onlineProgress.returnParent());
-                  onlineProgress
-                      .returnParent()
-                      .updateData(onlineProgress.getUID());
-                }
-              } catch (e) {
-                debugPrint('$e');
-              }
-              while (i < widget._arrayOfSquares.length - 1) {
-                widget._arrayOfSquares[i].imageName = "assets/images/empty.png";
-                i++;
-              }
-              Navigator.push(context, MaterialPageRoute(builder: (context) => BravoPage(score: playerProgress.score)));
-            }
-          });
-          globalSoundPlayerStartPage.play(AssetSource('music/correct.mp3'));
-        } else {
-          time = time - 5;
-          globalSoundPlayerStartPage.play(AssetSource('music/wrong.mp3'));
+  /// Stable random spots for every piece of this round (seeded per round, so
+  /// pieces stay put while others are placed).
+  ({double size, Map<Piece, Offset> spots, Map<Piece, double> angles}) _scatterPieces(
+      Size area, Rect board, Rect keepClear, double cellSize) {
+    final pieces = widget._copyOfarrayOfPuzzlePieces;
+    const spacing = 8.0;
+    // `size` is a piece's square part; its tabs need the larger `box`.
+    var size = math.min(cellSize, 60.0);
+    List<Offset> slots = [];
+    while (true) {
+      slots = [];
+      final box = JigsawPiece.boxSize(size);
+      final step = box + spacing;
+      for (final region in [
+        Rect.fromLTRB(0, 0, board.left - spacing, area.height),
+        Rect.fromLTRB(board.right + spacing, 0, area.width, area.height),
+      ]) {
+        final columns = ((region.width + spacing) / step).floor();
+        final rows = ((region.height + spacing) / step).floor();
+        if (columns <= 0 || rows <= 0) continue;
+        // Centre the grid of spots inside the region.
+        final offsetX = region.left + (region.width - (columns * step - spacing)) / 2;
+        final offsetY = region.top + (region.height - (rows * step - spacing)) / 2;
+        for (int r = 0; r < rows; r++) {
+          for (int c = 0; c < columns; c++) {
+            final spot = Offset(offsetX + c * step, offsetY + r * step);
+            if (!keepClear.overlaps(spot & Size(box, box))) slots.add(spot);
+          }
         }
-      },
+      }
+      if (slots.length >= pieces.length || size <= 26) break;
+      size -= 4;
+    }
+
+    final random = math.Random(_scatterSeed);
+    slots.shuffle(random);
+    final spots = <Piece, Offset>{};
+    final angles = <Piece, double>{};
+    for (int i = 0; i < pieces.length && i < slots.length; i++) {
+      final jitter = Offset((random.nextDouble() - 0.5) * spacing, (random.nextDouble() - 0.5) * spacing);
+      spots[pieces[i]] = slots[i] + jitter;
+      angles[pieces[i]] = (random.nextDouble() - 0.5) * 0.3;
+    }
+    return (size: size, spots: spots, angles: angles);
+  }
+
+  /// The picture to rebuild, pinned like a polaroid; tap to see it bigger.
+  Widget _polaroid(double width) {
+    return Transform.rotate(
+      angle: -0.06,
+      child: Pressable(
+        onTap: _zoomModel,
+        semanticLabel: 'Agrandir le modèle',
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(6, 6, 6, 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6, offset: Offset(2, 4))],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                children: [
+                  Image.asset(widget._imageName, width: width, height: width, fit: BoxFit.fill),
+                  const Positioned(
+                    right: 4,
+                    bottom: 4,
+                    child: CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.zoom_in_rounded, color: AppColors.darkBeige, size: 18),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                'Modèle',
+                style: TextStyle(fontFamily: 'Digital', fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget buildDragInterface() {
-    return Padding(
-      padding: const EdgeInsets.only(left: BorderSide.strokeAlignCenter),
-      child: Container(
-        height: 60,
-        width: 435,
-        margin: EdgeInsets.only(
-            left: 0.20 * screenWidth, right: 0.20 * screenWidth),
-        decoration: BoxDecoration(
-          color: Colors.white30,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.lightGreenAccent,
-            width: 3.0,
+  void _zoomModel() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => GestureDetector(
+        onTap: () => Navigator.pop(dialogContext),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.asset(widget._imageName, fit: BoxFit.contain),
           ),
         ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            ...widget._arrayOfPuzzlePieces
-                .map((trash) => Container(
-                      margin: const EdgeInsets.only(left: 10, right: 10),
-                      child: DraggablePiece(trash: trash),
-                    ))
-                ,
-          ]),
+      ),
+    );
+  }
+
+  /// Framed board with a faint ghost of the picture so children can see where
+  /// each piece goes.
+  Widget _board() {
+    return AnimatedScale(
+      scale: _revealing ? 1.04 : 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      child: Container(
+        padding: const EdgeInsets.all(_boardPadding),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: _revealing ? AppColors.green.withValues(alpha: 0.8) : Colors.black38,
+              blurRadius: _revealing ? 24 : 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: LayoutBuilder(builder: (context, constraints) {
+            final n = widget._matrixSize;
+            final cell = constraints.maxWidth / n;
+            final m = cell * JigsawCut.tabRatio;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.1,
+                    child: Image.asset(widget._imageName, fit: BoxFit.fill),
+                  ),
+                ),
+                if (!_revealing)
+                  Positioned.fill(child: CustomPaint(painter: JigsawOutlinePainter(_cut))),
+                for (final square in widget._arrayOfSquares.take(_totalPieces))
+                  if (square.imageName != _emptySquare)
+                    Positioned(
+                      left: ((square.id - 1) % n) * cell - m,
+                      top: ((square.id - 1) ~/ n) * cell - m,
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 1.15, end: 1),
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                        builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+                        child: JigsawPiece(
+                          image: widget._imageName,
+                          cut: _cut,
+                          row: (square.id - 1) ~/ n,
+                          col: (square.id - 1) % n,
+                          cell: cell,
+                          showShadow: false,
+                          showEdge: !_revealing,
+                        ),
+                      ),
+                    ),
+                for (final square in widget._arrayOfSquares.take(_totalPieces))
+                  Positioned(
+                    left: ((square.id - 1) % n) * cell,
+                    top: ((square.id - 1) ~/ n) * cell,
+                    width: cell,
+                    height: cell,
+                    child: showSquare(context, square: square),
+                  ),
+              ],
+            );
+          }),
         ),
       ),
+    );
+  }
+
+  Widget showSquare(BuildContext context, {required Square square}) {
+    return DragTarget<Piece>(
+      builder: (context, candidateData, rejectedData) => DropFeedback(
+        result: _squareResult[square.id] ?? DropResult.none,
+        tick: _squareTick[square.id] ?? 0,
+        hovering: candidateData.isNotEmpty,
+        borderRadius: 6,
+        child: Container(
+          color: square.imageName == _emptySquare && candidateData.isNotEmpty
+              ? Colors.white.withValues(alpha: 0.4)
+              : Colors.transparent,
+        ),
+      ),
+      onWillAcceptWithDetails: (details) => square.imageName == _emptySquare,
+      onAcceptWithDetails: (details) => _onDrop(square, details.data),
+    );
+  }
+
+  void _onDrop(Square square, Piece piece) {
+    final correct = square.id == piece.id;
+    final result = correct ? DropResult.correct : DropResult.wrong;
+    DropFeedback.haptic(result);
+    globalSoundPlayerStartPage.play(
+        AssetSource(correct ? 'music/correct.mp3' : 'music/wrong.mp3'),
+        volume: globalVolumeSoundSettings);
+    setState(() {
+      _squareResult[square.id] = result;
+      _squareTick[square.id] = (_squareTick[square.id] ?? 0) + 1;
+      if (correct) {
+        correctPiecesNumber++;
+        square.imageName = piece.imageName;
+        widget._arrayOfPuzzlePieces.removeWhere((p) => p.id == piece.id);
+      } else {
+        time = time > 5 ? time - 5 : 0;
+      }
+    });
+    if (correctPiecesNumber == _totalPieces) {
+      _finished = true;
+      setState(() => _revealing = true);
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted) _finishLevel();
+      });
+    }
+  }
+
+  void _finishLevel() {
+    _finished = true;
+    final points = 100 +
+        ((widget._copyOfarrayOfPuzzlePieces.length / widget._timeCount) * 1000).toInt();
+    playerProgress.score += points;
+    if (puzzleNumber < playerProgress.gamesData[0].levelsCompleted.length) {
+      final characters = playerProgress.gamesData[0].levelsCompleted.split('');
+      characters[puzzleNumber] = '1';
+      playerProgress.gamesData[0].levelsCompleted = characters.join('');
+    }
+    widget.setIsFinished(true);
+    widget._changeBooleanStatus(false);
+    try {
+      if (currentProfileIndex == 1) {
+        offlineProgress.setChild(globalChildKey, playerProgress);
+        if (parentBox.isEmpty) {
+          parentBox.add(offlineProgress.returnParent());
+        } else {
+          parentBox.putAt(0, offlineProgress.returnParent());
+        }
+      } else {
+        onlineProgress.setChild(onlineGlobalChildKey, playerProgress);
+        onlineParentBox.put(user!.uid, onlineProgress.returnParent());
+        onlineProgress.returnParent().updateData(onlineProgress.getUID());
+      }
+    } catch (e) {
+      debugPrint('$e');
+    }
+    final timeLeft = time / widget._timeCount;
+    final stars = timeLeft > 0.5 ? 3 : (timeLeft > 0.2 ? 2 : 1);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => BravoPage(score: points, stars: stars)),
     );
   }
 }
 
 class DraggablePiece extends StatelessWidget {
-  final Piece trash;
   const DraggablePiece({
     super.key,
     required this.trash,
+    required this.image,
+    required this.cut,
+    required this.cell,
+    required this.dragCell,
+    this.angle = 0,
   });
-  static double size = 50;
+  final Piece trash;
+  final String image;
+  final JigsawCut cut;
+
+  /// Size of the piece lying in the scatter, and while dragged (board size).
+  final double cell;
+  final double dragCell;
+
+  /// Resting tilt in radians; the piece straightens while dragged.
+  final double angle;
+
+  int get _row => (trash.id - 1) ~/ cut.gridSize;
+  int get _col => (trash.id - 1) % cut.gridSize;
+
+  Widget _piece(double size, {bool lifted = false}) => JigsawPiece(
+        image: image,
+        cut: cut,
+        row: _row,
+        col: _col,
+        cell: size,
+        lifted: lifted,
+      );
+
   @override
   Widget build(BuildContext context) => Draggable<Piece>(
         data: trash,
-        feedback: image(),
-        childWhenDragging: Container(height: size),
-        child: image(),
-      );
-
-  Widget image() => Container(
-        height: size,
-        width: size,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(trash.imageName),
-            fit: BoxFit.fill,
-          ),
-          // borderRadius: BorderRadius.circular(5),
-          borderRadius: BorderRadius.circular(2),
-          border: Border.all(
-            color: Colors.black,
-            width: 2.0,
-          ),
-          color: Colors.transparent,
+        // Centred under the finger at its board size, so it is easy to aim.
+        dragAnchorStrategy: pointerDragAnchorStrategy,
+        feedback: FractionalTranslation(
+          translation: const Offset(-0.5, -0.5),
+          child: _piece(dragCell, lifted: true),
         ),
+        childWhenDragging: Opacity(
+          opacity: 0.25,
+          child: Transform.rotate(angle: angle, child: _piece(cell)),
+        ),
+        onDragStarted: HapticFeedback.selectionClick,
+        child: Transform.rotate(angle: angle, child: _piece(cell)),
       );
 }

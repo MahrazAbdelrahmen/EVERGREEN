@@ -16,7 +16,6 @@ class _SilderMusicState extends State<SilderMusic> {
   Widget build(BuildContext context) {
     return Container(
       height: 23,
-      width: 200,
       decoration: BoxDecoration(
         boxShadow:  [
           BoxShadow(

@@ -23,6 +23,11 @@ final ThemeData appTheme = () {
     colorScheme: colorScheme,
     fontFamily: _fontFamily,
     scaffoldBackgroundColor: Colors.white,
+    pageTransitionsTheme: PageTransitionsTheme(
+      builders: {
+        for (final platform in TargetPlatform.values) platform: PlayfulPageTransitionsBuilder(),
+      },
+    ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
@@ -63,3 +68,34 @@ final ThemeData appTheme = () {
     ),
   );
 }();
+
+/// Screen transition used across the app: the new screen fades in while
+/// gently zooming up, and the old one recedes slightly behind it.
+class PlayfulPageTransitionsBuilder extends PageTransitionsBuilder {
+  const PlayfulPageTransitionsBuilder();
+
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 380);
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final incoming = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+    final outgoing = CurvedAnimation(parent: secondaryAnimation, curve: Curves.easeOutCubic);
+    return FadeTransition(
+      opacity: incoming,
+      child: ScaleTransition(
+        scale: Tween(begin: 0.94, end: 1.0).animate(incoming),
+        child: ScaleTransition(
+          scale: Tween(begin: 1.0, end: 0.97).animate(outgoing),
+          child: child,
+        ),
+      ),
+    );
+  }
+}

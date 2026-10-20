@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sorttrash/BackEnd/DataBaseService/local_data_base_service.dart';
 import 'package:sorttrash/player_box.dart';
@@ -15,8 +16,9 @@ class OnlineDataBaseService extends DataBaseService {
   addElementProgress(String childName, int childAge, String profileImage) {
     if (!(childName == '' || childAge >= 100 || childAge <= 3)) {
       int index = 0;
-      if (onlineParentBox.isEmpty) {
-        onlineParentBox.put(_uid, returnParent());
+      // No cached family for THIS account yet (other accounts may be cached).
+      if (!onlineParentBox.containsKey(getUID())) {
+        onlineParentBox.put(getUID(), returnParent());
         index = returnParent().numberOfChildren;
         incrementChildrenCount();
         addChild(PlayerProgress(
@@ -32,9 +34,9 @@ class OnlineDataBaseService extends DataBaseService {
             childName,
             '$childName-${const Uuid().v4().toString().substring(0, 8)}',profileImage,DateTime.now()));
         setParentChildren(returnPlayers());
-        onlineParentBox.put(_uid, returnParent());
+        onlineParentBox.put(getUID(), returnParent());
       } else {
-        setParent(onlineParentBox.get(_uid));
+        setParent(onlineParentBox.get(getUID()) ?? returnParent());
         index = returnParent().numberOfChildren;
         incrementChildrenCount();
         addChild(PlayerProgress(
@@ -50,7 +52,7 @@ class OnlineDataBaseService extends DataBaseService {
             childName,
             '$childName-${const Uuid().v4().toString().substring(0, 8)}', profileImage,DateTime.now()));
         setParentChildren(returnPlayers());
-        onlineParentBox.put(_uid, returnParent());
+        onlineParentBox.put(getUID(), returnParent());
       }
 
     }
@@ -68,7 +70,7 @@ class OnlineDataBaseService extends DataBaseService {
         i++;
       }
       setParentChildren(returnPlayers());
-      onlineParentBox.put(_uid, returnParent());
+      onlineParentBox.put(getUID(), returnParent());
     } catch (e) {
       debugPrint('$e');
     }
@@ -81,16 +83,16 @@ class OnlineDataBaseService extends DataBaseService {
       playerProgress.childsName = childName;
       removeChild(playerProgress);
       addChild(playerProgress);
-      setParent(onlineParentBox.get(_uid));
+      setParent(onlineParentBox.get(getUID()) ?? returnParent());
       setParentChildren(returnPlayers());
-      onlineParentBox.put(_uid, returnParent());
+      onlineParentBox.put(getUID(), returnParent());
     }
   }
 
   @override
   bool returnLockedState(int index, int levelNumber) {
     try {
-      setParent(onlineParentBox.get(_uid));
+      setParent(onlineParentBox.get(getUID()) ?? returnParent());
       playerProgress =
           onlineProgress.returnParent().children[onlineGlobalChildKey];
     } catch (e) {
@@ -110,7 +112,7 @@ class OnlineDataBaseService extends DataBaseService {
   @override
   bool returnChallengeLockedState(int index, int levelNumber) {
     try {
-      setParent(onlineParentBox.get(_uid));
+      setParent(onlineParentBox.get(getUID()) ?? returnParent());
       playerProgress =
       onlineProgress.returnParent().children[onlineGlobalChildKey];
     } catch (e) {
@@ -133,7 +135,10 @@ class OnlineDataBaseService extends DataBaseService {
     _uid = uid;
   }
 
+  /// The signed-in family's id; falls back to the current Firebase user when
+  /// it was never set (e.g. right after sign-up), so saves never use ''.
   String getUID() {
+    if (_uid.isEmpty) _uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     return _uid;
   }
 

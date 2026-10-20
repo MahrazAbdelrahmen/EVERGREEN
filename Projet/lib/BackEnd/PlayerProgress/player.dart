@@ -105,16 +105,17 @@ class Parent {
         .toList();
     return Parent(children, json['childrenNumber'], json['parentUUID']);
   }
-  void createData( String uid) {
-    final CollectionReference parentCollection =
-        FirebaseFirestore.instance.collection('parent');
-    final json = {
-      "children": children.map((e) => e.toJson()).toList(),
-      "childrenNumber": numberOfChildren,
-      "parentUUID": parentUUID
-    };
-    parentCollection.doc(uid).set(json);
+  Map<String, dynamic> _toJson() => {
+        "children": children.map((e) => e.toJson()).toList(),
+        "childrenNumber": numberOfChildren,
+        "parentUUID": parentUUID,
+      };
+
+  void createData(String uid) {
+    FirebaseFirestore.instance.collection('parent').doc(uid).set(_toJson());
+    syncLeaderboard(uid);
   }
+
   Future<Parent?> fetchParentData(String uuid) async {
     try{
       DocumentSnapshot snapshot =
@@ -126,21 +127,51 @@ class Parent {
       return null;
     }
   }
-  Stream<List<Parent>> readParents() => FirebaseFirestore.instance.collection('parent').snapshots().map((event) => event.docs.map((e) => Parent.fromJson(e.data())).toList());
+
+  /// Saves this family's record and refreshes its leaderboard entries.
   void updateData(String dataId) {
-   try{
-     final CollectionReference parentCollection =
-     FirebaseFirestore.instance.collection('parent');
-     final json = {
-       "children": children.map((e) => e.toJson()).toList(),
-       "childrenNumber": numberOfChildren,
-       "parentUUID": parentUUID
-     };
-     parentCollection.doc(dataId).update(json);
-   } catch (e){
-     debugPrint('$e');
-   }
+    if (dataId.isEmpty) {
+      debugPrint('updateData skipped: no signed-in family id');
+      return;
+    }
+    FirebaseFirestore.instance
+        .collection('parent')
+        .doc(dataId)
+        .set(_toJson())
+        .catchError((Object e) => debugPrint('updateData failed: $e'));
+    syncLeaderboard(dataId);
   }
 
+  /// Mirrors each child's first name, score and avatar into the shared
+  /// `leaderboard` collection (the only data other families can read), and
+  /// removes entries of children that were deleted. See firestore.rules.
+  Future<void> syncLeaderboard(String uid) async {
+    if (uid.isEmpty) return;
+    final firestore = FirebaseFirestore.instance;
+    final board = firestore.collection('leaderboard');
+    try {
+      final batch = firestore.batch();
+      final keep = <String>{};
+      for (final child in children) {
+        final key = (child.childGlobalUID ?? '${child.childID}').replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+        final id = '${uid}_$key';
+        keep.add(id);
+        final name = (child.childsName ?? '').trim();
+        batch.set(board.doc(id), {
+          'owner': uid,
+          'name': name.length > 20 ? name.substring(0, 20) : name,
+          'score': child.score,
+          'avatar': child.avatarProfileName ?? '',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      final mine = await board.where('owner', isEqualTo: uid).get();
+      for (final doc in mine.docs) {
+        if (!keep.contains(doc.id)) batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      debugPrint('syncLeaderboard failed: $e');
+    }
+  }
 }
-

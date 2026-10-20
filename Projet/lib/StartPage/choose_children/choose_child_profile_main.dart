@@ -13,36 +13,47 @@ class AnonChildSelector extends StatefulWidget {
 
 class _AnonChildSelector extends State<AnonChildSelector> {
   final User? user = FirebaseAuth.instance.currentUser;
-  final screens = [
-    const OnlineProfilesSelection(),
-    const OfflineProfilesSelection(),
-    const LeaderBoard()
-  ];
+  Widget _screen(int index) => switch (index) {
+        0 => const OnlineProfilesSelection(),
+        1 => const OfflineProfilesSelection(),
+        _ => const LeaderBoard(),
+      };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: SizedBox(
-        child: BottomNavigationBar(
-          currentIndex: currentProfileIndex,
-          unselectedItemColor: Colors.black38,
-          onTap: (index) => setState(() {
-            currentProfileIndex = index;
-          }),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.wifi, size: 20, ), label: 'Profils en ligne', backgroundColor: Colors.greenAccent),
-            BottomNavigationBarItem(icon: Icon(Icons.signal_wifi_connected_no_internet_4_sharp, size: 20,), label: 'Hors Ligne', backgroundColor: Colors.redAccent),
-            BottomNavigationBarItem(icon: Icon(Icons.leaderboard, size: 20,), label: 'Classement', backgroundColor: Colors.redAccent, ),
-          ],
-        ),
+      bottomNavigationBar: NavigationBar(
+        height: 60,
+        selectedIndex: currentProfileIndex,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        onDestinationSelected: (index) => setState(() {
+          currentProfileIndex = index;
+        }),
+        destinations: const [
+          NavigationDestination(
+              icon: Icon(Icons.cloud_outlined),
+              selectedIcon: Icon(Icons.cloud_rounded),
+              label: 'En ligne'),
+          NavigationDestination(
+              icon: Icon(Icons.phone_android_outlined),
+              selectedIcon: Icon(Icons.phone_android_rounded),
+              label: 'Sur cet appareil'),
+          NavigationDestination(
+              icon: Icon(Icons.leaderboard_outlined),
+              selectedIcon: Icon(Icons.leaderboard_rounded),
+              label: 'Classement'),
+        ],
       ),
       body: PopScope(
         canPop: false,
-        child: IndexedStack(
-          index: currentProfileIndex,
-          children: screens,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: KeyedSubtree(
+            key: ValueKey(currentProfileIndex),
+            child: _screen(currentProfileIndex),
+          ),
         ),
-      )
+      ),
     );
   }
 }
-

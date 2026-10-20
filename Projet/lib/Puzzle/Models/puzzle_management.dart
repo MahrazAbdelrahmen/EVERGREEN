@@ -42,7 +42,7 @@ class PuzzleManagement{
   );
   late PuzzleLevel level5 = PuzzleLevel(
     isLocked: dataBaseService.returnLockedState(4,0),
-    arrayOfPuzzlePieces: puzzleLevel1Array,
+    arrayOfPuzzlePieces: puzzleLevel5Array,
     arrayOfSquares: puzzleArray,
     matrixSSize: 5,
     timeCount: 1500,
