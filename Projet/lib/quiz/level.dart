@@ -179,7 +179,10 @@ class _LevelState extends State<Level> {
                       onTap: () => backToRoute(context, '/Nquiz'),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(child: QuizProgressBar()),
+                    // Keyed so it refreshes after each answer (a const bar would never rebuild).
+                    Expanded(
+                      child: QuizProgressBar(key: ValueKey('${QuizProgress.question}/${QuizProgress.correct}')),
+                    ),
                     const SizedBox(width: 60),
                   ],
                 ),
