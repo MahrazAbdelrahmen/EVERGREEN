@@ -1,4 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math' as math;
+
+import 'package:sorttrash/composents/ui/player_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:sorttrash/card_bg.dart';
 import 'package:sorttrash/histoires/levelsStory.dart';
@@ -22,113 +25,108 @@ class _mainMenuState extends State<mainMenu> {
   final User? user = FirebaseAuth.instance.currentUser;
   @override
   void initState() {
+    super.initState();
     globalMusicPlayerStartPage.resume();
+    final user = this.user;
     if (user != null) {
-      if (!user!.emailVerified) {
-        setState(() {
-          user!.delete();
-          FirebaseAuth.instance.signOut();
-        });
+      if (!user.emailVerified) {
+        user.delete();
+        FirebaseAuth.instance.signOut();
       } else {
-        setState(() {
-          isSignedIn = true;
-        });
+        isSignedIn = true;
       }
-      super.initState();
     }
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/images/bg-image2.png'),
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg-image2.png'),
+            fit: BoxFit.cover,
           ),
-          child: Center(
-            child: Container(
-              height: 330.0,
-              alignment: Alignment.center,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 15.0),
-                        child: Container(
-                          //pour creer un alignement des elements
-                          height: 60.0,
-                          width: 120.0,
-                          // color: Colors.amber,
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children:  [
-                                const RoundButton(
-                                  href: '/StartPage',
-                                  myIcon: Icons.home,
-                                  couleur: Color.fromRGBO(255, 210, 23, 5),
-                                  shadowColor: Color.fromRGBO(255, 210, 23, 5),
-                                ), //le premier
-                                isSignedIn ?
-                                roundButtonSettingsWhileLogged
-                                    : roundButtonSettings
-                              ]),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                     child: Row(
-                      //la ligne de widget de type cardBg
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children:  [
-                        cardBg(
-                          title: 'GAMES',
-                          coleur1: Color.fromARGB(255, 76, 218, 254),
-                          coleur2: Color.fromARGB(255, 76, 218, 254),
-                          couleur3: Color.fromARGB(255, 133, 216, 229),
-                          href: '/games',
-                          Photo: "trash.png",
+                      children: [
+                        const PlayerChip(),
+                        const Spacer(),
+                        const RoundButton(
+                          href: '/StartPage',
+                          myIcon: Icons.home,
+                          couleur: Color.fromRGBO(255, 210, 23, 1),
+                          shadowColor: Color.fromRGBO(255, 210, 23, 1),
                         ),
-                        SizedBox(
-                          width: 40,
-                        ),
-                        cardBg(
-                          title: 'Livre',
-                          coleur1: Color.fromARGB(255, 76, 218, 254),
-                          coleur2: Color.fromARGB(255, 76, 218, 254),
-                          couleur3: Color.fromARGB(255, 133, 216, 229),
-                          href: '/conseils',
-                          Photo: "trash2.png",
-                        ),
-                        SizedBox(
-                          width: 40,
-                        ),
-
-                        CardBgWithWidget(
-                          title: 'HISTOIRES',
-                          coleur1: Color.fromARGB(255, 76, 218, 254),
-                          coleur2: Color.fromARGB(255, 76, 218, 254),
-                          couleur3: Color.fromARGB(255, 133, 216, 229),
-                          href: levelsStory(nbrKeys: _countNumberOfOnesInAString(playerProgress.gamesData[3].levelsCompleted),),
-                          Photo: "trash3.png",
-                        ),
+                        const SizedBox(width: 12),
+                        isSignedIn ? roundButtonSettingsWhileLogged : roundButtonSettings,
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
+                  Expanded(
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      const count = 3;
+                      const gap = 40.0;
+                      final cardWidth = math.min(
+                        (constraints.maxWidth - 48 - gap * (count - 1)) / count,
+                        constraints.maxHeight * 0.68,
+                      );
+                      final cardHeight = math.min(cardWidth * 1.4, constraints.maxHeight - 36);
+                      return Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            cardBg(
+                              title: 'JEUX',
+                              coleur1: const Color.fromARGB(255, 76, 218, 254),
+                              coleur2: const Color.fromARGB(255, 76, 218, 254),
+                              couleur3: const Color.fromARGB(255, 133, 216, 229),
+                              href: '/games',
+                              Photo: "trash.png",
+                              width: cardWidth,
+                              height: cardHeight,
+                              floatIndex: 0,
+                            ),
+                            const SizedBox(width: 40),
+                            cardBg(
+                              title: 'LIVRE',
+                              coleur1: const Color.fromARGB(255, 76, 218, 254),
+                              coleur2: const Color.fromARGB(255, 76, 218, 254),
+                              couleur3: const Color.fromARGB(255, 133, 216, 229),
+                              href: '/conseils',
+                              Photo: "trash2.png",
+                              width: cardWidth,
+                              height: cardHeight,
+                              floatIndex: 1,
+                            ),
+                            const SizedBox(width: 40),
+                            CardBgWithWidget(
+                              title: 'HISTOIRES',
+                              coleur1: const Color.fromARGB(255, 76, 218, 254),
+                              coleur2: const Color.fromARGB(255, 76, 218, 254),
+                              couleur3: const Color.fromARGB(255, 133, 216, 229),
+                              href: levelsStory(nbrKeys: _countNumberOfOnesInAString(playerProgress.gamesData[3].levelsCompleted),),
+                              Photo: "trash3.png",
+                              width: cardWidth,
+                              height: cardHeight,
+                              floatIndex: 2,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ),
+            ],
           ),
         ),
       ),
     );
   }
+
   int _countNumberOfOnesInAString(String input) {
     int count = 0;
     for (int i = 0; i < input.length; i++) {

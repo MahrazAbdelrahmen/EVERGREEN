@@ -39,6 +39,21 @@ Ce jeu est utilisé par :
 * [Notice d’installation PDF](https://drive.google.com/file/d/1Ip1xgkHyk78BL5WucTI9bh4KQ6w3NnVH/view?usp=sharing)
 
 
+## Développement
+
+Le code de l'application se trouve dans `Projet/`. Il nécessite Flutter 3.38+ (Dart 3.9+) et un JDK 17.
+
+```bash
+cd Projet
+flutter pub get
+flutter test
+flutter run
+```
+
+* Après une modification de `lib/BackEnd/PlayerProgress/player.dart`, régénérer les adaptateurs Hive avec `dart run build_runner build`.
+* **Signature release Android** : créer `Projet/android/key.properties` (jamais versionné) contenant `storeFile`, `storePassword`, `keyAlias` et `keyPassword`. Sans ce fichier, la build release est signée avec la clé de debug.
+* **iOS** : ajouter `GoogleService-Info.plist` (ou lancer `flutterfire configure`) avant de compiler pour iOS.
+
 ## Remerciement
 
 * Nous souhaitons exprimer nos sincères remerciements à Mr Balla A. et Mme Bourai S. pour leur encadrement précieux tout au long de ce projet. Leur expertise, leurs conseils et leur soutien nous ont permis de mener à bien notre travail.

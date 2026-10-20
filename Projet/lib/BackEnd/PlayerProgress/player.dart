@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'player.g.dart';
 
@@ -35,7 +36,9 @@ class PlayerProgress {
       json['childsName'] as String?,
       json['childGlobalUID'] as String?,
       json['avatarProfileName'] as String?,
-      DateTime.parse(json['lastChallengeDate'] as String),
+      json['lastChallengeDate'] == null
+          ? null
+          : DateTime.parse(json['lastChallengeDate'] as String),
     );
   }
   Map<String, dynamic> toJson() {
@@ -102,40 +105,73 @@ class Parent {
         .toList();
     return Parent(children, json['childrenNumber'], json['parentUUID']);
   }
-  createData( String uid) {
-    final CollectionReference parentCollection =
-        FirebaseFirestore.instance.collection('parent');
-    final json = {
-      "children": children.toList().map((e) => e.toJson()),
-      "childrenNumber": numberOfChildren,
-      "parentUUID": parentUUID
-    };
-    parentCollection.doc(uid).set(json);
+  Map<String, dynamic> _toJson() => {
+        "children": children.map((e) => e.toJson()).toList(),
+        "childrenNumber": numberOfChildren,
+        "parentUUID": parentUUID,
+      };
+
+  void createData(String uid) {
+    FirebaseFirestore.instance.collection('parent').doc(uid).set(_toJson());
+    syncLeaderboard(uid);
   }
-  Future fetchParentData(String uuid) async {
+
+  Future<Parent?> fetchParentData(String uuid) async {
     try{
       DocumentSnapshot snapshot =
       await FirebaseFirestore.instance.collection('parent').doc(uuid).get();
-      return Parent.fromJson(snapshot.data() as Map<String, dynamic>);
+      final data = snapshot.data() as Map<String, dynamic>?;
+      return data == null ? null : Parent.fromJson(data);
     } catch (e) {
-      print(e);
+      debugPrint('fetchParentData failed: $e');
+      return null;
     }
   }
-  Stream<List<Parent>> readParents() => FirebaseFirestore.instance.collection('parent').snapshots().map((event) => event.docs.map((e) => Parent.fromJson(e.data())).toList());
+
+  /// Saves this family's record and refreshes its leaderboard entries.
   void updateData(String dataId) {
-   try{
-     final CollectionReference parentCollection =
-     FirebaseFirestore.instance.collection('parent');
-     final json = {
-       "children": children.toList().map((e) => e.toJson()),
-       "childrenNumber": numberOfChildren,
-       "parentUUID": parentUUID
-     };
-     parentCollection.doc(dataId).update(json);
-   } catch (e){
-     print(e);
-   }
+    if (dataId.isEmpty) {
+      debugPrint('updateData skipped: no signed-in family id');
+      return;
+    }
+    FirebaseFirestore.instance
+        .collection('parent')
+        .doc(dataId)
+        .set(_toJson())
+        .catchError((Object e) => debugPrint('updateData failed: $e'));
+    syncLeaderboard(dataId);
   }
 
+  /// Mirrors each child's first name, score and avatar into the shared
+  /// `leaderboard` collection (the only data other families can read), and
+  /// removes entries of children that were deleted. See firestore.rules.
+  Future<void> syncLeaderboard(String uid) async {
+    if (uid.isEmpty) return;
+    final firestore = FirebaseFirestore.instance;
+    final board = firestore.collection('leaderboard');
+    try {
+      final batch = firestore.batch();
+      final keep = <String>{};
+      for (final child in children) {
+        final key = (child.childGlobalUID ?? '${child.childID}').replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+        final id = '${uid}_$key';
+        keep.add(id);
+        final name = (child.childsName ?? '').trim();
+        batch.set(board.doc(id), {
+          'owner': uid,
+          'name': name.length > 20 ? name.substring(0, 20) : name,
+          'score': child.score,
+          'avatar': child.avatarProfileName ?? '',
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      final mine = await board.where('owner', isEqualTo: uid).get();
+      for (final doc in mine.docs) {
+        if (!keep.contains(doc.id)) batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      debugPrint('syncLeaderboard failed: $e');
+    }
+  }
 }
-

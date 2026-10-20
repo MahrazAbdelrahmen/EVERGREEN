@@ -1,18 +1,17 @@
-
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:floating_snackbar/floating_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sorttrash/player_box.dart';
 
 import '../../../BackEnd/PlayerProgress/player.dart';
-import '../../../button.dart';
-import '../../../defis/key_container.dart';
-import 'online_data_profile_container.dart';
+import '../../../composents/app_theme.dart';
+import '../../../composents/ui/app_button.dart';
+import '../profile_widgets.dart';
 
 class OnlineProfilesSelection extends StatefulWidget {
-  const OnlineProfilesSelection({Key? key}) : super(key: key);
+  const OnlineProfilesSelection({super.key});
 
   @override
   State<OnlineProfilesSelection> createState() => _OnlineProfilesSelection();
@@ -20,190 +19,161 @@ class OnlineProfilesSelection extends StatefulWidget {
 
 class _OnlineProfilesSelection extends State<OnlineProfilesSelection> {
   late Timer _timer;
+  final User? user = FirebaseAuth.instance.currentUser;
+
   @override
   void initState() {
     super.initState();
-   _timer = Timer.periodic(const Duration(minutes: 5), (timer) async {
+    _timer = Timer.periodic(const Duration(minutes: 5), (timer) async {
       await getProgress();
+      if (!mounted) return;
       setState(() {
         playersOnline = onlineProgress.returnPlayers();
       });
     });
   }
+
   @override
   void dispose() {
     _timer.cancel();
     super.dispose();
   }
-  final User? user = FirebaseAuth.instance.currentUser;
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: user == null
-          ? Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: const [
-                    Icon(
-                      Icons.wifi_off_sharp,
-                      color: Colors.black54,
-                      size: 100,
-                    ),
-                    Text(
-                      'Veuillez Vous Connecter',
-                      style: TextStyle(
-                          fontSize: 50,
-                          color: Colors.redAccent,
-                          fontFamily: 'Digital'),
-                    )
-                  ],
-                ),
-              ),
-            )
-          : Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('assets/images/bg-image2.png'),
-                    fit: BoxFit.fill),
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const RoundButton(
-                          myIcon: Icons.home,
-                          href: '/StartPage',
-                          couleur: Colors.greenAccent,
-                          shadowColor: Colors.greenAccent,
-                        ),
-                        const SizedBox(width: 5,),
-                        ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: sm1,
-                                side: const BorderSide(width: 3, color: Colors.white),
-                                elevation: 0,
-                                shape:
-                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                padding:
-                                const EdgeInsets.only(left: 30, right: 30, top: 8, bottom: 10)),
-                            onPressed: () {
-                              if (onlineGlobalChildKey != -1) {
-                                addChild();
-                                Navigator.popAndPushNamed(context, '/');
-                              } else {
-                                FloatingSnackBar(
-                                  message:
-                                  '📢 : Please Choose A Child Profile! ',
-                                  context: context,
-                                  textColor: Colors.black,
-                                  textStyle: const TextStyle(
-                                      color: Colors.white,
-                                      fontFamily: 'Digital',
-                                      fontSize: 16),
-                                  duration: const Duration(milliseconds: 4000),
-                                  backgroundColor: Colors.redAccent,
-                                );
-                              }
-                            },
-                            child: const Text(
-                              'Play !',
-                              style: TextStyle(
-                                fontFamily: 'Digital',
-                              ),
-                            )),
-                        const SizedBox(width: 5,),
-                        ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: sm1,
-                                side: const BorderSide(width: 3, color: Colors.white),
-                                elevation: 0,
-                                shape:
-                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                padding:
-                                const EdgeInsets.only(left: 30, right: 30, top: 8, bottom: 10)),
-                            child: const Icon(Icons.add),
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/AddPlayer');
-                            }),
-                      ],
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ...playersOnline.map((e) => OnlineProfileDataContainer(playerProgress: e)),
-                      ],
-                    ),
+    if (user == null) return const _SignedOut();
+    return Scaffold(
+      body: ProfilePicker(
+        players: playersOnline,
+        selectedId: onlineGlobalChildKey,
+        onSelect: _select,
+        onEdit: _edit,
+        onAdd: () async {
+          final newId = await Navigator.pushNamed(context, '/AddPlayer');
+          if (!mounted) return;
+          setState(() {
+            _loadFromBox();
+            if (newId is int && newId >= 0) {
+              onlineGlobalChildKey = newId;
+              globalChildKey = -1;
+            }
+          });
+        },
+        onPlay: () {
+          addChild();
+          Navigator.popAndPushNamed(context, '/');
+        },
+      ),
+    );
+  }
 
-                  ],
-                ),
-              ),
-            ),
+  /// Re-reads this account's profiles from the local cache of Firestore data.
+  void _loadFromBox() {
+    final Parent? parent = onlineParentBox.get(user!.uid);
+    if (parent == null) return;
+    onlineProgress.setParent(parent);
+    onlineProgress.setPlayers(parent.children);
+    playersOnline = parent.children;
+  }
+
+  void _select(PlayerProgress player) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      onlineGlobalChildKey = player.childID;
+      globalChildKey = -1;
+    });
+    try {
+      onlineProgress.setParent(onlineParentBox.get(user!.uid) ?? onlineProgress.returnParent());
+      onlineParentBox.put(onlineProgress.getUID(), onlineProgress.returnParent());
+      onlineProgress.returnParent().updateData(onlineProgress.getUID());
+    } catch (e) {
+      debugPrint('$e');
+    }
+  }
+
+  void _edit(PlayerProgress player) {
+    showEditProfileDialog(
+      context,
+      player: player,
+      onRename: (name) => setState(() {
+        onlineProgress.setParent(onlineParentBox.get(user!.uid) ?? onlineProgress.returnParent());
+        player.childsName = name;
+        onlineProgress.setChild(player.childID, player);
+        onlineProgress.returnParent().updateData(onlineProgress.getUID());
+        onlineParentBox.put(onlineProgress.getUID(), onlineProgress.returnParent());
+      }),
+      onDelete: () => setState(() {
+        onlineProgress.setParent(onlineParentBox.get(user!.uid) ?? onlineProgress.returnParent());
+        onlineProgress.deleteElementProgress(player);
+        playersOnline = onlineProgress.returnPlayers();
+        onlineGlobalChildKey = -1;
+        onlineProgress.returnParent().updateData(onlineProgress.getUID());
+        onlineParentBox.put(onlineProgress.getUID(), onlineProgress.returnParent());
+      }),
     );
   }
 }
 
-void addChild(){
+class _SignedOut extends StatelessWidget {
+  const _SignedOut();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('assets/images/bg-image2.png'), fit: BoxFit.cover),
+        ),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.cloud_off_rounded, size: 48, color: AppColors.lightBlue),
+                const SizedBox(height: 8),
+                const Text('Profils en ligne',
+                    style: TextStyle(
+                        fontFamily: 'Digital', fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('Connecte-toi pour sauvegarder ta progression en ligne.',
+                    style: TextStyle(fontFamily: 'Digital', color: Colors.black54)),
+                const SizedBox(height: 16),
+                AppButton(
+                  label: 'Se connecter',
+                  icon: Icons.login_rounded,
+                  color: AppColors.lightBlue,
+                  onTap: () => Navigator.pushNamed(context, '/LoginPage'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void addChild() {
+  final child = onlineProgress.returnParent().children[onlineGlobalChildKey];
   onlineProgress.setChild(
       onlineGlobalChildKey,
       PlayerProgress(
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey]
-              .score,
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey]
-              .gamesData,
+          child.score,
+          child.gamesData,
           DateTime.now(),
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey]
-              .childID,
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey]
-              .childsName,
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey]
-              .childGlobalUID,
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey].avatarProfileName,
-          onlineProgress
-              .returnParent()
-              .children[onlineGlobalChildKey].lastChallengeDate
-      ));
-  onlineParentBox.put(onlineProgress.getUID(),
-      onlineProgress.returnParent());
-  onlineProgress
-      .returnParent()
-      .updateData(onlineProgress.getUID());
-
-}
-
-void updateChild( String childName, int? childAge, PlayerProgress e){
-  onlineProgress
-      .updateElementProgress(
-      e,
-      childName,
-      childAge!);
-  playersOnline =
-      onlineProgress
-          .returnPlayers();
-  onlineParentBox.put(
-      onlineProgress
-          .getUID(),
-      onlineProgress
-          .returnParent());
-  onlineProgress
-      .returnParent()
-      .updateData(
-      onlineProgress
-          .getUID());
+          child.childID,
+          child.childsName,
+          child.childGlobalUID,
+          child.avatarProfileName,
+          child.lastChallengeDate));
+  onlineParentBox.put(onlineProgress.getUID(), onlineProgress.returnParent());
+  onlineProgress.returnParent().updateData(onlineProgress.getUID());
 }

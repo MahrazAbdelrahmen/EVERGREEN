@@ -21,7 +21,7 @@ class PlayerStatsUtil{
     int i = 0;
     int count = 0;
     while( i < playerProgress.gamesData.length - 1){
-      count += this.countNumberOfOnesInAString(i);
+      count += countNumberOfOnesInAString(i);
       i++;
     }
     return count;
